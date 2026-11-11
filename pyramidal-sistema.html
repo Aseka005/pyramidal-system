@@ -1,0 +1,1293 @@
+<title>Пирамидалық жүйе</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@1,400&display=swap">
+<style>
+/* Layout: sticky chapter index on the left, one tinted chapter per topic on the right.
+   Colour: blue-tinted slate neutrals; every chapter owns a hue (--h) and derives accent/soft/edge from it.
+   Type: IBM Plex Sans for text, Plex Serif italic for Latin anatomical terms, Plex Mono for index labels. */
+:root{
+  --bg:#F0F4F9; --surface:#FFFFFF; --surface-2:#F6F8FC; --ink:#0D1A2C; --ink-2:#3B4C63; --muted:#62738A; --line:#DAE2EC;
+  --on-accent:#FFFFFF; --ring:#2B67E8; --hit:hsl(48 100% 62% / .6);
+  --warn-bg:#FFF3DC; --warn-edge:#EFC476; --warn-ink:#5E3C00;
+  --shadow:0 1px 2px rgba(13,26,44,.05),0 8px 24px rgba(13,26,44,.05);
+  --a-s:62%; --a-l:38%; --s-s:78%; --s-l:95.5%; --e-s:52%; --e-l:83%;
+  --font-body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+  --font-lat:'IBM Plex Serif',Georgia,'Times New Roman',serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#08111C; --surface:#0F1A2A; --surface-2:#0B1522; --ink:#E8EEF6; --ink-2:#B6C3D4; --muted:#8798AE; --line:#223148;
+    --on-accent:#08111C; --ring:#8DB4FF; --hit:hsl(48 95% 52% / .4);
+    --warn-bg:#2A2010; --warn-edge:#5C4519; --warn-ink:#F4D79F;
+    --shadow:none;
+    --a-s:86%; --a-l:73%; --s-s:34%; --s-l:16.5%; --e-s:30%; --e-l:31%;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#08111C; --surface:#0F1A2A; --surface-2:#0B1522; --ink:#E8EEF6; --ink-2:#B6C3D4; --muted:#8798AE; --line:#223148;
+  --on-accent:#08111C; --ring:#8DB4FF; --hit:hsl(48 95% 52% / .4);
+  --warn-bg:#2A2010; --warn-edge:#5C4519; --warn-ink:#F4D79F;
+  --shadow:none;
+  --a-s:86%; --a-l:73%; --s-s:34%; --s-l:16.5%; --e-s:30%; --e-l:31%;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:20px}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.65 var(--font-body);-webkit-font-smoothing:antialiased;text-wrap:pretty}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--surface);z-index:70}
+h1,h2,h3,h4{text-wrap:balance;margin:0}
+p{margin:0}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:4px}
+
+.hue{
+  --accent:hsl(var(--h) var(--a-s) var(--a-l));
+  --soft:hsl(var(--h) var(--s-s) var(--s-l));
+  --edge:hsl(var(--h) var(--e-s) var(--e-l));
+  --alt:hsl(calc(var(--h) + 150) var(--a-s) var(--a-l));
+  --alt-soft:hsl(calc(var(--h) + 150) var(--s-s) var(--s-l));
+  --alt-edge:hsl(calc(var(--h) + 150) var(--e-s) var(--e-l));
+}
+
+/* ---------- shell ---------- */
+.app{display:grid;grid-template-columns:minmax(264px,312px) minmax(0,1fr);align-items:start}
+.nav{
+  position:sticky;top:env(safe-area-inset-top,0px);
+  height:calc(100vh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+  height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+  overflow-y:auto;background:var(--surface);border-right:1px solid var(--line);
+  padding:20px 12px 24px max(16px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;gap:14px;min-width:0
+}
+.brand{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.brand small{display:block;font:500 11px var(--font-mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.brand b{display:block;font-size:19px;line-height:1.2;letter-spacing:-.01em;margin-top:2px}
+.ibtn{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);cursor:pointer}
+.ibtn:hover{border-color:var(--ring)}
+.ibtn svg{width:18px;height:18px}
+.search{position:relative}
+.search input{width:100%;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);font:400 15px var(--font-body);padding:0 40px 0 12px}
+.search input::placeholder{color:var(--muted)}
+.search input:focus{outline:2px solid var(--ring);outline-offset:1px}
+.search button{position:absolute;right:4px;top:4px;width:34px;height:34px;border:0;background:none;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;border-radius:8px}
+.qs{font-size:13px;color:var(--muted);min-height:1em;margin-top:6px}
+.prog{display:grid;gap:6px;font-size:13px;color:var(--muted)}
+.prog i{display:block;height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.prog i b{display:block;height:100%;width:0;background:var(--ring);border-radius:99px;transition:width .3s}
+.grp{font:500 11px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 10px 4px}
+.nav-list{display:flex;flex-direction:column;gap:2px}
+.nav-list a{display:grid;grid-template-columns:26px minmax(0,1fr) 14px;align-items:center;gap:10px;padding:7px 10px;border-radius:9px;text-decoration:none;color:var(--ink-2);font-size:14px;line-height:1.35}
+.nav-list a:hover{background:var(--surface-2)}
+.nav-list .n{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--soft);color:var(--accent);font:500 12px var(--font-mono)}
+.nav-list a[aria-current="true"]{background:var(--soft);color:var(--ink);font-weight:500}
+.nav-list a[aria-current="true"] .n{background:var(--accent);color:var(--on-accent)}
+.nav-list a.is-done .ck::after{content:"";display:block;width:5px;height:9px;border:solid var(--accent);border-width:0 2px 2px 0;transform:rotate(45deg);margin-left:3px}
+.nav-list a.nohit{opacity:.35}
+.scrim{display:none}
+
+.top{display:none}
+.main{min-width:0;padding-block:28px 90px;padding-left:36px;padding-right:max(24px,env(safe-area-inset-right,0px))}
+.wrap{max-width:960px;display:flex;flex-direction:column;gap:28px}
+
+/* ---------- hero ---------- */
+.hero{display:flex;flex-direction:column;gap:18px;padding-bottom:6px}
+.eyebrow{font:500 12px var(--font-mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.hero h1{font-size:clamp(34px,6.2vw,58px);line-height:1.04;font-weight:700;letter-spacing:-.025em}
+.lat{font-family:var(--font-lat);font-style:italic;font-weight:400;color:var(--muted)}
+.hero .lat{font-size:18px}
+.lead{max-width:62ch;font-size:17px;color:var(--ink-2)}
+.spec{display:flex;gap:3px;height:10px}
+.spec a{flex:1;min-width:0;border-radius:99px;background:var(--accent);transition:transform .15s}
+.spec a:hover,.spec a:focus-visible{transform:scaleY(1.9)}
+.formula{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+.f-lead{font-weight:700;font-size:17px}
+.f-op{color:var(--muted);font-weight:500}
+.f-chip{background:var(--soft);color:var(--accent);border:1px solid var(--edge);border-radius:99px;padding:3px 12px;font-weight:600;font-size:15px}
+.plan-h{font:500 12px var(--font-mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.plan{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));gap:8px;counter-reset:pl}
+.plan li{counter-increment:pl;min-width:0}
+.plan a{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:center;padding:9px 12px;border-radius:11px;background:var(--surface);border:1px solid var(--line);text-decoration:none;font-size:14.5px;line-height:1.35}
+.plan a::before{content:counter(pl);display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:var(--soft);color:var(--accent);font:500 12px var(--font-mono)}
+.plan a:hover{border-color:var(--accent)}
+
+/* ---------- chapter ---------- */
+.sec{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);scroll-margin-top:20px}
+.sec-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:20px 24px 18px;background:var(--soft);border-bottom:1px solid var(--edge);border-radius:15px 15px 0 0}
+.sec-head .eyebrow{color:var(--accent)}
+.sec-head h2{font-size:clamp(22px,3.4vw,29px);line-height:1.15;font-weight:700;letter-spacing:-.015em;margin-top:4px}
+.sec-head .lat{margin-top:4px;font-size:15px}
+.done{flex:none;display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border-radius:99px;border:1px solid var(--edge);background:var(--surface);color:var(--ink-2);font:500 13px var(--font-body);cursor:pointer;white-space:nowrap}
+.done::before{content:"";width:14px;height:14px;border-radius:50%;border:2px solid var(--accent)}
+.done[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.done[aria-pressed="true"]::before{border-color:var(--on-accent);background:radial-gradient(circle,var(--on-accent) 0 38%,transparent 42%)}
+.sec-body{padding:24px;display:flex;flex-direction:column;gap:18px;min-width:0}
+.sec-body>*{min-width:0}
+.sec h3{font-size:18px;line-height:1.3;font-weight:600;letter-spacing:-.005em}
+.sec h3 .lat{font-size:15px;margin-left:4px}
+.sec h4{font-size:16px;line-height:1.35;font-weight:600}
+.sec h4 .lat{font-size:14px;margin-left:4px}
+.sec b,.sec strong{font-weight:600}
+.sub{font:500 12px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.stack{display:flex;flex-direction:column;gap:10px}
+
+ul.l,ol.l{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+ul.l li{position:relative;padding-left:20px}
+ul.l li::before{content:"";position:absolute;left:3px;top:.62em;width:7px;height:7px;border-radius:2px;background:var(--accent)}
+ul.cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:6px 22px}
+ol.l{counter-reset:o}
+ol.l li{counter-increment:o;position:relative;padding-left:30px}
+ol.l li::before{content:counter(o);position:absolute;left:0;top:1px;width:22px;height:22px;border-radius:7px;background:var(--soft);color:var(--accent);font:500 12px/22px var(--font-mono);text-align:center}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--soft);color:var(--accent);border:1px solid var(--edge);border-radius:99px;padding:3px 13px;font-size:14.5px;font-weight:500}
+
+.callout{border:1px solid var(--edge);background:var(--soft);border-radius:12px;padding:13px 16px;display:flex;flex-direction:column;gap:4px}
+.cl{font:500 11.5px var(--font-mono);letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.callout.mem{background:var(--alt-soft);border-color:var(--alt-edge)}
+.callout.mem .cl{color:var(--alt)}
+.callout.exam{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.callout.exam .cl{color:var(--on-accent);opacity:.85}
+.callout.warn{background:var(--warn-bg);border-color:var(--warn-edge);color:var(--warn-ink)}
+.callout.warn .cl{color:var(--warn-ink)}
+
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px;line-height:1.5}
+th{background:var(--soft);color:var(--accent);text-align:left;font:600 12.5px var(--font-body);letter-spacing:.02em;padding:10px 14px;white-space:nowrap}
+td{padding:10px 14px;border-top:1px solid var(--line);vertical-align:top}
+td:first-child{font-weight:500}
+tbody tr:nth-child(even) td{background:var(--surface-2)}
+th.c{background:hsl(6 var(--a-s) var(--a-l));color:var(--on-accent)}
+th.p{background:hsl(214 var(--a-s) var(--a-l));color:var(--on-accent)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px}
+.card{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card h4{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px}
+.card.tint{background:var(--soft);border-color:var(--edge)}
+.card.tint2{background:var(--alt-soft);border-color:var(--alt-edge)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:0;font-size:14.5px}
+.kv dt{font:500 11.5px var(--font-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding-top:3px}
+.kv dd{margin:0}
+.stat{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.stat b{font:700 34px/1 var(--font-body);letter-spacing:-.02em;color:var(--accent)}
+.card.tint2 .stat b{color:var(--alt)}
+.stat span{color:var(--ink-2);font-size:14.5px}
+
+/* anatomy figure */
+.anat{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:28px;align-items:start}
+.fig{position:sticky;top:20px;margin:0}
+.fig svg{display:block;width:100%;height:auto;max-width:400px;margin-inline:auto}
+.fig .o{fill:var(--soft);stroke:var(--edge);stroke-width:1.5}
+.fig .gy{fill:none;stroke:var(--accent);stroke-width:7;stroke-linecap:round;opacity:.38}
+.fig .t1{fill:none;stroke:var(--accent);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.fig .t2{fill:none;stroke:var(--alt);stroke-width:3;stroke-linecap:round}
+.fig .mid{fill:none;stroke:var(--edge);stroke-dasharray:4 4}
+.fig .c1{fill:var(--accent)}
+.fig .c2{fill:var(--alt)}
+.fig text{font-family:var(--font-body);fill:var(--ink);font-size:12px}
+.fig .l1{font-weight:600;font-size:13px}
+.fig .lt{font-family:var(--font-lat);font-style:italic;fill:var(--muted);font-size:11px}
+.fig text.a{fill:var(--accent);font-weight:600}
+.fig text.b{fill:var(--alt);font-weight:600}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:22px;counter-reset:st}
+.steps>li{counter-increment:st;display:grid;grid-template-columns:34px minmax(0,1fr);gap:14px}
+.steps>li::before{content:counter(st);display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--accent);color:var(--on-accent);font:500 14px var(--font-mono)}
+.steps>li>div{display:flex;flex-direction:column;gap:8px;min-width:0}
+.homun{display:grid;gap:6px}
+.homun div{display:grid;grid-template-columns:minmax(96px,auto) 1fr;gap:10px;align-items:center;font-size:14.5px}
+.homun span{font:500 11.5px var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.homun div::after{content:none}
+.homun b{display:block;background:var(--soft);border:1px solid var(--edge);border-radius:8px;padding:5px 10px;font-weight:500}
+
+/* levels */
+.lvl{display:flex;flex-direction:column}
+.lvi{display:grid;grid-template-columns:14px minmax(0,1fr);gap:16px;padding-bottom:26px;position:relative}
+.lvi:last-child{padding-bottom:0}
+.lvi::before{content:"";width:14px;height:14px;border-radius:50%;background:var(--accent);margin-top:6px;box-shadow:0 0 0 4px var(--soft)}
+.lvi::after{content:"";position:absolute;left:6px;top:24px;bottom:4px;width:2px;background:var(--edge)}
+.lvi:last-child::after{display:none}
+.lvi>div{display:flex;flex-direction:column;gap:9px;min-width:0}
+.if{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:start}
+.if b{background:var(--soft);color:var(--accent);border-radius:8px;padding:2px 10px;font-size:13px;white-space:nowrap}
+
+.case h3{font-size:18px}
+.reveal{display:block}
+.reveal>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 16px;border-radius:99px;background:var(--accent);color:var(--on-accent);font:500 14px var(--font-body)}
+.reveal>summary::-webkit-details-marker{display:none}
+.reveal>summary::after{content:"";width:7px;height:7px;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-2px,-2px);transition:transform .2s}
+.reveal[open]>summary::after{transform:rotate(225deg)}
+.reveal>.ans{margin-top:12px}
+mark.hit{background:var(--hit);color:inherit;border-radius:3px;padding:0 1px}
+body.searching .hero{display:none}
+.foot{font-size:13.5px;color:var(--muted);padding:4px 2px}
+
+/* ---------- phone / tablet ---------- */
+@media (max-width:900px){
+  .app{display:block}
+  .top{display:flex;align-items:center;gap:10px;position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--surface);border-bottom:1px solid var(--line);padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+  .top b{flex:1;min-width:0;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nav{position:fixed;z-index:80;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px);left:0;height:auto;width:min(88vw,340px);transform:translateX(-102%);transition:transform .25s;box-shadow:0 0 40px rgba(0,0,0,.25)}
+  body.nav-open .nav{transform:none}
+  .scrim{position:fixed;inset:0;z-index:75;background:rgba(5,12,22,.5)}
+  body.nav-open .scrim{display:block}
+  .main{padding-block:18px 70px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  html{scroll-padding-top:72px}
+  .sec{scroll-margin-top:72px}
+  .anat{grid-template-columns:minmax(0,1fr)}
+  .fig{position:static}
+}
+@media (max-width:560px){
+  .sec-head{padding:16px;flex-direction:column;gap:12px}
+  .sec-body{padding:16px}
+  .steps>li{grid-template-columns:30px minmax(0,1fr);gap:10px}
+  .steps>li::before{width:30px;height:30px}
+  .if{grid-template-columns:1fr}
+  .homun div{grid-template-columns:1fr;gap:3px}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *{transition:none!important}
+}
+</style>
+
+<div class="app">
+  <aside class="nav" id="nav" aria-label="Бөлімдер">
+    <div class="brand">
+      <div><small>Неврология</small><b>Пирамидалық жүйе</b></div>
+      <button class="ibtn js-theme" type="button" aria-label="Түнгі және күндізгі режимді ауыстыру" title="Түнгі / күндізгі режим">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17a8.5 8.5 0 0 0 0-17z" fill="currentColor"/></svg>
+      </button>
+    </div>
+    <div class="search">
+      <input id="q" type="search" placeholder="Іздеу: Бабинский, C6, Вебер…" autocomplete="off" aria-label="Конспектіден іздеу">
+      <button id="qc" type="button" aria-label="Іздеуді тазалау" hidden>×</button>
+      <div class="qs" id="qs" aria-live="polite"></div>
+    </div>
+    <div class="prog" id="prog"><span id="progT">0 / 18 оқылды</span><i><b id="progB"></b></i></div>
+    <nav class="nav-list" id="navList"></nav>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <div class="main">
+    <div class="top">
+      <button class="ibtn" id="menuBtn" type="button" aria-label="Бөлімдер мәзірі" aria-expanded="false" aria-controls="nav">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <b>Пирамидалық жүйе</b>
+      <button class="ibtn js-theme" type="button" aria-label="Түнгі және күндізгі режимді ауыстыру">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17a8.5 8.5 0 0 0 0-17z" fill="currentColor"/></svg>
+      </button>
+    </div>
+
+    <div class="wrap">
+      <header class="hero" id="top">
+        <p class="eyebrow">Неврология · конспект</p>
+        <h1>Пирамидалық жүйе</h1>
+        <p class="lat">Systema pyramidale · пирамидалық жолдар</p>
+        <p class="lead">Бұл тақырыпты неврологиялық тексеру кезінде науқастың жағдайын түсіндіріп, оқытушының «Неге? Қалай? Қай жерде зақымдалған?» деген сұрақтарына жауап бере алатындай етіп ретімен қарастырамыз.</p>
+        <div class="spec" id="spectrum" aria-label="Барлық бөлімдер"></div>
+        <div class="formula" role="group" aria-label="Негізгі формула">
+          <span class="f-lead">Орталық зақым</span><span class="f-op">=</span>
+          <span class="f-chip hue" style="--h:6">спастика</span><span class="f-op">+</span>
+          <span class="f-chip hue" style="--h:292">гиперрефлексия</span><span class="f-op">+</span>
+          <span class="f-chip hue" style="--h:168">Бабинский</span>
+        </div>
+        <h2 class="plan-h">Жоспар</h2>
+        <ol class="plan">
+          <li><a class="hue" style="--h:214" href="#s1">Пирамидалық жүйенің анықтамасы және қызметі</a></li>
+          <li><a class="hue" style="--h:262" href="#s2">Пирамидалық жүйенің анатомиясы</a></li>
+          <li><a class="hue" style="--h:188" href="#s3">Пирамидалық жолдардың түрлері</a></li>
+          <li><a class="hue" style="--h:322" href="#s4">Қозғалтқыш жолдың нейрондары және олардың орналасуы</a></li>
+          <li><a class="hue" style="--h:46" href="#s8">Пирамидалық жүйенің зақымдалу деңгейлері</a></li>
+          <li><a class="hue" style="--h:6" href="#s6">Орталық және шеткі салдану</a></li>
+          <li><a class="hue" style="--h:292" href="#s7">Клиникалық көріністері: негізгі белгілер, рефлекстер, патологиялық рефлекстер</a></li>
+          <li><a class="hue" style="--h:46" href="#s8">Зақымдалу деңгейіне байланысты клиника</a></li>
+          <li><a class="hue" style="--h:128" href="#s10">Дерматомалар және олардың клиникалық маңызы</a></li>
+          <li><a class="hue" style="--h:350" href="#s12">Диагностика</a></li>
+          <li><a class="hue" style="--h:152" href="#s13">Емі</a></li>
+          <li><a class="hue" style="--h:340" href="#s14">Балалардағы ерекшеліктері</a></li>
+        </ol>
+      </header>
+
+<!-- ============ 1 ============ -->
+<section class="sec hue" id="s1" style="--h:214" data-n="1" data-group="Негіздері">
+  <header class="sec-head"><div><p class="eyebrow">1-бөлім</p><h2>Пирамидалық жүйе дегеніміз не?</h2><p class="lat">Systema pyramidale</p></div></header>
+  <div class="sec-body">
+    <p>Пирамидалық жүйе <i class="lat">(Systema pyramidale)</i> — үлкен ми сыңарлары қыртысынан басталып, ми бағаны арқылы жұлынның алдыңғы мүйіздеріндегі қозғалтқыш нейрондарға немесе бас-ми жүйкелерінің қозғалтқыш ядроларына импульс жеткізетін жүйе.</p>
+    <p>Негізгі қызметі — адамның <b>ерікті, саналы қозғалыстарын басқару.</b></p>
+    <div class="stack">
+      <p class="sub">Мысалы</p>
+      <div class="chips"><span class="chip">Қолды көтеру</span><span class="chip">Жүру</span><span class="chip">Саусақтарды қимылдату</span><span class="chip">Жазу</span><span class="chip">Сөйлеуге қатысатын бұлшықеттерді басқару</span><span class="chip">Дәл және нәзік қозғалыстар жасау</span></div>
+    </div>
+    <div class="callout key"><span class="cl">Негізгі ерекшелігі</span><p>Пирамидалық жүйе әсіресе қол мен аяқтың дистальды бөліктеріндегі дәл, мақсатты қозғалыстарды орындауда маңызды.</p></div>
+    <h3>Пирамидалық жүйенің негізгі құрамдас бөліктері</h3>
+    <div class="two">
+      <article class="card tint"><h4>Қыртыс-жұлын жолы</h4><p class="lat">Tractus corticospinalis</p></article>
+      <article class="card tint2"><h4>Қыртыс-ядролық жол</h4><p class="lat">Tractus corticonuclearis (corticobulbaris)</p></article>
+    </div>
+    <p>Екеуі де пирамидалық жүйеге жатады.</p>
+    <div class="callout key"><span class="cl">Маңызды</span><p>Пирамидалық жүйе тек бір жолдан тұрмайды. Оның құрамында жұлынға және ми бағанының қозғалтқыш ядроларына баратын талшықтар бар.</p></div>
+  </div>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="sec hue" id="s2" style="--h:262" data-n="2" data-group="Негіздері">
+  <header class="sec-head"><div><p class="eyebrow">2-бөлім</p><h2>Пирамидалық жүйенің анатомиясы</h2><p class="lat">Cortex → Capsula interna → Mesencephalon → Pons → Medulla → Medulla spinalis</p></div></header>
+  <div class="sec-body">
+    <p>Пирамидалық жолдың жүретін анатомиялық құрылымдарын <b>жоғарыдан төмен қарай</b> есте сақтау керек.</p>
+    <div class="anat">
+      <figure class="fig">
+        <svg viewBox="0 0 400 690" role="img" aria-labelledby="ft fd">
+          <title id="ft">Пирамидалық жолдың жүру сызбасы</title>
+          <desc id="fd">Ми қыртысынан ішкі капсула, ортаңғы ми, ми көпірі және сопақша ми арқылы жұлынға дейінгі жол. Сопақша мида талшықтардың 85–90 пайызы айқасып, латеральды жолға айналады, 10–15 пайызы алдыңғы жолмен төмен түседі.</desc>
+          <path class="o" d="M106 84 C106 30 146 12 186 12 C231 12 266 36 266 84 Z"/>
+          <path class="gy" d="M118 72 C122 44 146 24 176 22"/>
+          <rect class="o" x="144" y="112" width="84" height="40" rx="10"/>
+          <rect class="o" x="144" y="176" width="84" height="40" rx="10"/>
+          <rect class="o" x="144" y="240" width="84" height="40" rx="10"/>
+          <rect class="o" x="154" y="304" width="64" height="148" rx="14"/>
+          <rect class="o" x="136" y="452" width="100" height="146" rx="8"/>
+          <path class="mid" d="M186 300 V452"/>
+          <path class="t1" d="M170 24 V372"/>
+          <path class="t1" d="M170 372 C170 412 212 408 212 474 V606"/>
+          <path class="t2" d="M170 372 C170 400 160 408 160 440 V606"/>
+          <circle class="c1" cx="170" cy="24" r="5"/>
+          <circle class="c1" cx="212" cy="614" r="8"/>
+          <circle class="c2" cx="160" cy="614" r="7"/>
+          <path class="t1" d="M212 622 V646"/>
+          <rect class="o" x="182" y="646" width="60" height="24" rx="12"/>
+          <text class="l1" x="280" y="40">Ми қыртысы</text>
+          <text class="lt" x="280" y="54">Gyrus precentralis</text>
+          <text class="lt" x="280" y="68">Бродман 4-аймағы</text>
+          <text class="a" x="98" y="30" text-anchor="end">1-нейрон</text>
+          <text class="l1" x="244" y="128">Ішкі капсула</text>
+          <text class="lt" x="244" y="142">Capsula interna</text>
+          <text class="l1" x="244" y="192">Ортаңғы ми</text>
+          <text class="lt" x="244" y="206">Crus cerebri</text>
+          <text class="l1" x="244" y="256">Ми көпірі</text>
+          <text class="lt" x="244" y="270">Pons</text>
+          <text class="l1" x="244" y="322">Сопақша ми</text>
+          <text class="lt" x="244" y="336">Pyramides medullae</text>
+          <text class="a" x="244" y="392">Пирамидалар айқасуы</text>
+          <text class="lt" x="244" y="406">Decussatio pyramidum</text>
+          <text class="l1" x="252" y="486">Жұлын</text>
+          <text class="lt" x="252" y="500">Medulla spinalis</text>
+          <text class="a" x="252" y="540">Латеральды жол</text>
+          <text x="252" y="555">85–90 %</text>
+          <text class="b" x="128" y="540" text-anchor="end">Алдыңғы жол</text>
+          <text x="128" y="555" text-anchor="end">10–15 %</text>
+          <text class="l1" x="252" y="612">α-мотонейрон</text>
+          <text class="lt" x="252" y="626">алдыңғы мүйіз</text>
+          <text class="b" x="146" y="618" text-anchor="end">2-нейрон</text>
+          <text class="l1" x="252" y="662">Бұлшықет</text>
+        </svg>
+      </figure>
+
+      <ol class="steps">
+        <li><div>
+          <h3>Ми қыртысы <span class="lat">Cortex cerebri</span></h3>
+          <p>Негізгі басталу аймағы — маңдай бөлігінің артқы орталық қатпары алдындағы аймақ, яғни:</p>
+          <ul class="l">
+            <li>Прецентралды иірім — <i class="lat">Gyrus precentralis</i>.</li>
+            <li>Бродманның 4-аймағы — алғашқы моторлық қыртыс.</li>
+            <li>Қозғалысты жоспарлауға қатысатын 6-аймақ — премоторлық және қосымша моторлық аймақтар.</li>
+          </ul>
+          <p>Моторлық қыртыста дене бөліктерінің соматотопиялық орналасуы бар. Бұл — <b>моторлық гомункулус:</b></p>
+          <div class="homun">
+            <div><span>Медиальды бетінде</span><b>аяқ пен табан</b></div>
+            <div><span>Ортаңғы бөлігінде</span><b>тұлға және қол</b></div>
+            <div><span>Латеральды бөлігінде</span><b>бет, ерін, тіл</b></div>
+          </div>
+          <p>Сондықтан қыртыстың белгілі бір аймағы зақымдалса, дененің нақты бөлігі әлсірейді.</p>
+        </div></li>
+        <li><div>
+          <h3>Ішкі капсула <span class="lat">Capsula interna</span></h3>
+          <p>Ми қыртысынан шыққан талшықтар ішкі капсула арқылы өтеді.</p>
+          <ul class="l">
+            <li><b>Артқы аяқшасы</b> — аяқ-қолдарға баратын кортикоспиналдық талшықтар.</li>
+            <li><b>Тізесі</b> — негізінен кортикобульбарлық талшықтар.</li>
+          </ul>
+          <p>Ішкі капсула зақымдалса, қарама-қарсы жақтағы бет, қол және аяқ бұлшықеттерінің салдануы немесе парезі болуы мүмкін.</p>
+        </div></li>
+        <li><div>
+          <h3>Ортаңғы ми <span class="lat">Mesencephalon</span></h3>
+          <p>Талшықтар ми аяқшаларының негізі арқылы өтеді — <i class="lat">Crus cerebri</i>.</p>
+        </div></li>
+        <li><div>
+          <h3>Ми көпірі <span class="lat">Pons</span></h3>
+          <p>Талшықтар көпірдің негізінде орналасқан буда түрінде төмен қарай өтеді.</p>
+        </div></li>
+        <li><div>
+          <h3>Сопақша ми <span class="lat">Medulla oblongata</span></h3>
+          <p>Бұл жерде пирамидалар — <i class="lat">Pyramides medullae oblongatae</i> орналасады.</p>
+          <div class="callout key"><span class="cl">Ең маңызды анатомиялық оқиға</span><p>Пирамидалардың айқасуы — <i class="lat">Decussatio pyramidum</i>.</p></div>
+          <div class="two">
+            <article class="card tint"><div class="stat"><b>85–90%</b><span>кортикоспиналдық талшықтар сопақша мидың төменгі бөлігінде қарама-қарсы жаққа өтеді.</span></div></article>
+            <article class="card tint2"><div class="stat"><b>10–15%</b><span>алдыңғы кортикоспиналдық жол ретінде төмен түседі. Олардың көпшілігі жұлын сегменттері деңгейінде айқасады немесе екі жақты байланыс түзеді.</span></div></article>
+          </div>
+        </div></li>
+        <li><div>
+          <h3>Жұлын <span class="lat">Medulla spinalis</span></h3>
+          <p>Айқасқан талшықтар жұлынның ақ затындағы латеральды бағанмен төмен түседі.</p>
+          <p>Жұлынның алдыңғы мүйізінде орналасқан α-мотонейрондармен синапс түзеді (кейде аралық нейрондар арқылы).</p>
+          <p>Одан әрі перифериялық жүйке арқылы бұлшықетке импульс беріледі.</p>
+        </div></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="sec hue" id="s3" style="--h:188" data-n="3" data-group="Негіздері">
+  <header class="sec-head"><div><p class="eyebrow">3-бөлім</p><h2>Пирамидалық жолдардың түрлері</h2><p class="lat">Tractus corticospinalis · Tractus corticonuclearis</p></div></header>
+  <div class="sec-body">
+    <p>Пирамидалық жүйе екі негізгі жолға бөлінеді.</p>
+    <h3>А. Қыртыс-жұлын жолы <span class="lat">Tractus corticospinalis</span></h3>
+    <p>Бұл жол ми қыртысынан жұлынға дейін барады және тұлға мен аяқ-қолдың ерікті қозғалыстарын басқарады. Ол екі бөлікке бөлінеді:</p>
+    <div class="two">
+      <article class="card tint">
+        <h4>1. Латеральды қыртыс-жұлын жолы <span class="lat">Tractus corticospinalis lateralis</span></h4>
+        <ul class="l">
+          <li>Талшықтардың шамамен <b>85–90%</b>-ын құрайды.</li>
+          <li>Сопақша мида пирамидалар айқасуынан өтеді.</li>
+          <li>Жұлынның бүйірлік бағанымен төмен түседі.</li>
+          <li>Қол мен аяқтың дистальды бұлшықеттерінің дәл қозғалысына жауап береді.</li>
+        </ul>
+        <p><b>Мысалы:</b> саусақтарды қозғалту, қалам ұстау, аяқтың ұсақ қозғалыстары.</p>
+      </article>
+      <article class="card tint2">
+        <h4>2. Алдыңғы қыртыс-жұлын жолы <span class="lat">Tractus corticospinalis anterior</span></h4>
+        <ul class="l">
+          <li>Талшықтардың шамамен <b>10–15%</b>-ын құрайды.</li>
+          <li>Сопақша мида бірден айқаспайды.</li>
+          <li>Жұлынның алдыңғы бағанымен төмен түседі.</li>
+          <li>Көбінесе жұлынның тиісті сегментінде алдыңғы ақ комиссура арқылы айқасады.</li>
+          <li>Мойын және тұлға бұлшықеттерін, әсіресе денені тұрақтандыруға қатысатын бұлшықеттерді басқарады.</li>
+          <li>Көп жағдайда екі жақты иннервация береді.</li>
+        </ul>
+      </article>
+    </div>
+    <h3>Ә. Қыртыс-ядролық жол <span class="lat">Tractus corticonuclearis</span></h3>
+    <p>Басқа атауы — қыртыс-бульбарлық жол <i class="lat">(Tractus corticobulbaris)</i>. Бұл жол ми қыртысынан ми бағанындағы бас-ми жүйкелерінің қозғалтқыш ядроларына барады. Ол келесі жүйкелердің қозғалтқыш қызметіне қатысады:</p>
+    <div class="tw"><table>
+      <thead><tr><th>Жүйке</th><th>Қозғалтқыш қызметі</th></tr></thead>
+      <tbody>
+        <tr><td>V — Үшкіл</td><td>Шайнау бұлшықеттері</td></tr>
+        <tr><td>VII — Бет</td><td>Мимикалық бұлшықеттер</td></tr>
+        <tr><td>IX, X — Тіл-жұтқыншақ, кезбе</td><td>Жұтыну, жұмсақ таңдай, жұтқыншақ, көмей</td></tr>
+        <tr><td>XI — Қосымша</td><td>Мойын бұлшықеттері (негізінен жұлындық бөлігі)</td></tr>
+        <tr><td>XII — Тіласты</td><td>Тіл бұлшықеттері</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout key"><span class="cl">Маңызды клиникалық ерекшелігі</span>
+      <p>Қыртыс-ядролық талшықтардың көпшілігі екі жақты байланыс түзеді. Бірақ кейбір ядролардың иннервациясында қарама-қарсылық басым:</p>
+      <ul class="l">
+        <li>VII жүйкенің төменгі бет бұлшықеттері — негізінен қарама-қарсы жарты шардан.</li>
+        <li>XII жүйкенің тіл бұлшықеттері — әсіресе <i class="lat">m. genioglossus</i>, негізінен қарама-қарсы жарты шардан.</li>
+      </ul>
+    </div>
+    <p>Сондықтан бір жақты орталық зақымдануда <b>маңдай бұлшықеттері салыстырмалы түрде сақталып, беттің қарама-қарсы төменгі жартысы әлсірейді.</b></p>
+  </div>
+</section>
+
+<!-- ============ 4 ============ -->
+<section class="sec hue" id="s4" style="--h:322" data-n="4" data-group="Негіздері">
+  <header class="sec-head"><div><p class="eyebrow">4-бөлім</p><h2>Қозғалтқыш жүйенің екі нейроны</h2><p class="lat">Motoneuron centralis · Motoneuron periphericus</p></div></header>
+  <div class="sec-body">
+    <p>Пирамидалық жүйенің клиникасын түсіну үшін екі нейронды міндетті түрде білу керек.</p>
+    <div class="two">
+      <article class="card tint">
+        <h4>1. Бірінші нейрон — орталық қозғалтқыш нейрон <span class="lat">Motoneuron centralis</span></h4>
+        <p class="sub">Орналасуы</p>
+        <ul class="l"><li>Ми қыртысының прецентралды иірімі.</li><li>Моторлық аймақтар.</li></ul>
+        <p>Аксон арқылы импульс төмен қарай жұлынға немесе ми бағанындағы қозғалтқыш ядроларға барады.</p>
+        <p><b>Зақымдалса — орталық салдану немесе парез пайда болады.</b></p>
+      </article>
+      <article class="card tint2">
+        <h4>2. Екінші нейрон — шеткі қозғалтқыш нейрон <span class="lat">Motoneuron periphericus</span></h4>
+        <p class="sub">Орналасуы</p>
+        <ul class="l"><li>Жұлынның алдыңғы мүйізіндегі α-мотонейрондар.</li><li>Ми бағанындағы бас-ми жүйкелерінің қозғалтқыш ядролары.</li></ul>
+        <p>Аксон жұлынның алдыңғы түбірі, перифериялық жүйке арқылы бұлшықетке жетеді.</p>
+        <p><b>Зақымдалса — шеткі салдану немесе парез пайда болады.</b></p>
+      </article>
+    </div>
+    <p class="sub">Есте сақта</p>
+    <div class="tw"><table>
+      <thead><tr><th>Белгі</th><th class="c">Бірінші нейрон</th><th class="p">Екінші нейрон</th></tr></thead>
+      <tbody>
+        <tr><td>Басқа атауы</td><td>Орталық</td><td>Шеткі</td></tr>
+        <tr><td>Орналасуы</td><td>Ми қыртысы, ОЖЖ жолдары</td><td>Алдыңғы мүйіз, қозғалтқыш ядро, перифериялық жүйке</td></tr>
+        <tr><td>Бұлшықет тонусы</td><td>Жоғарылайды</td><td>Төмендейді</td></tr>
+        <tr><td>Рефлекстер</td><td>Жоғарылайды</td><td>Төмендейді немесе жойылады</td></tr>
+        <tr><td>Бабинский</td><td>Оң</td><td>Теріс</td></tr>
+        <tr><td>Атрофия</td><td>Айқын емес, кеш дамуы мүмкін</td><td>Айқын</td></tr>
+        <tr><td>Фасцикуляция</td><td>Әдетте жоқ</td><td>Болуы мүмкін</td></tr>
+      </tbody>
+    </table></div>
+    <p>Бұл айырмашылық клиникалық диагноз қоюда өте маңызды.</p>
+  </div>
+</section>
+
+<!-- ============ 5 ============ -->
+<section class="sec hue" id="s5" style="--h:32" data-n="5" data-group="Зақымдалу және клиника">
+  <header class="sec-head"><div><p class="eyebrow">5-бөлім</p><h2>Пирамидалық жүйенің зақымдалу себептері</h2></div></header>
+  <div class="sec-body">
+    <p>Пирамидалық жүйе әртүрлі деңгейде зақымдалуы мүмкін. Негізгі себептері:</p>
+    <ul class="l cols">
+      <li>Ми қан айналымының бұзылыстары — ишемиялық немесе геморрагиялық инсульт.</li>
+      <li>Бас-ми жарақаттары.</li>
+      <li>Жұлын жарақаттары.</li>
+      <li>Ми және жұлын ісіктері.</li>
+      <li>Көп ошақты склероз.</li>
+      <li>Энцефалит, миелит.</li>
+      <li>Нейродегенеративті аурулар, мысалы, алғашқы латеральды склероз.</li>
+      <li>Жұлынның қысылуы — компрессиялық миелопатия.</li>
+      <li>Тұқым қуалайтын спастикалық параплегия.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 6 ============ -->
+<section class="sec hue" id="s6" style="--h:6" data-n="6" data-group="Зақымдалу және клиника">
+  <header class="sec-head"><div><p class="eyebrow">6-бөлім</p><h2>Пирамидалық жүйе зақымдалғанда қандай салданулар пайда болады?</h2><p class="lat">Paralysis centralis · Paralysis peripherica</p></div></header>
+  <div class="sec-body">
+    <p>Негізгі екі синдром бар:</p>
+    <div class="two">
+      <article class="card tint"><h4>Орталық салдану</h4><p class="lat">паралич центральный</p></article>
+      <article class="card" style="background:hsl(214 var(--s-s) var(--s-l));border-color:hsl(214 var(--e-s) var(--e-l))"><h4>Шеткі салдану</h4><p class="lat">паралич периферический</p></article>
+    </div>
+
+    <h3>А. Орталық салдану <span class="lat">Paralysis centralis</span></h3>
+    <p>Бұл <b>бірінші қозғалтқыш нейронның</b> зақымдалуынан пайда болады.</p>
+    <div class="callout key"><span class="cl">Патогенезі</span>
+      <p>Қалыпты жағдайда ми қыртысы жұлындағы қозғалтқыш нейрондарға тек қоздырушы емес, тежеуші ықпал да көрсетеді.</p>
+      <p>Бірінші нейрон зақымдалғанда төмендейтін реттеуші ықпал бұзылады. Жұлынның рефлекторлық доғаларының қозғыштығы артады.</p>
+      <p>Нәтижесінде бұлшықет тонусы мен сіңір рефлекстері жоғарылайды.</p>
+    </div>
+    <h3>Орталық салданудың негізгі клиникалық белгілері</h3>
+    <ol class="l">
+      <li><h4>Парез немесе паралич</h4>
+        <ul class="l"><li><b>Парез</b> — бұлшықет күшінің жартылай төмендеуі.</li><li><b>Паралич (плегия)</b> — ерікті қозғалыстың толық жоғалуы.</li></ul></li>
+      <li><h4>Бұлшықет гипертонусы <span class="lat">Hypertonus</span></h4>
+        <p>Бұлшықет тонусы жоғарылайды. Көбінесе спастикалық сипатта болады. Спастиканың ерекшелігі: пассивті қозғалыс жылдам орындалғанда бұлшықет қарсылығы артады.</p>
+        <p><b>Пышақ тәрізді бүгілу феномені</b> — <i class="lat">Clasp-knife phenomenon</i>. Дәрігер науқастың аяқ-қолын пассивті жазғанда бастапқыда қатты қарсылық сезіледі, кейін қарсылық кенет төмендейді. Бұл спастикалық гипертонусқа тән.</p></li>
+      <li><h4>Сіңір рефлекстерінің жоғарылауы <span class="lat">Hyperreflexia</span></h4>
+        <ul class="l"><li>Тізе рефлексі — жоғарылайды.</li><li>Ахилл рефлексі — жоғарылайды.</li><li>Шынтақ рефлекстері — жоғарылайды.</li></ul>
+        <p>Рефлекстердің таралуы және рефлексогендік аймақтың кеңеюі байқалуы мүмкін.</p></li>
+      <li><h4>Клонус <span class="lat">Clonus</span></h4>
+        <p>Клонус — бұлшықетті созғанда пайда болатын ырғақты, қайталанатын еріксіз жиырылулар. Көбінесе табан клонусы және тізе тобығының клонусы кездеседі.</p>
+        <p><b>Табан клонусын тексеру:</b> дәрігер табанды жылдам жоғары қарай бүгеді (дорсальды флексия) және сол қалыпта ұстайды. Егер ырғақты қайталанатын қозғалыстар пайда болса, клонус оң деп есептеледі.</p></li>
+      <li><h4>Патологиялық рефлекстердің пайда болуы</h4>
+        <p>Бұл — орталық қозғалтқыш нейронның зақымдалуын көрсететін маңызды белгі. Оларға Бабинский, Россолимо, Оппенгейм және басқа рефлекстер жатады. <a href="#s7"><b>Жеке қарастырамыз → 7-бөлім</b></a></p></li>
+      <li><h4>Бұлшықет атрофиясының болмауы немесе әлсіз болуы</h4>
+        <p>Себебі екінші қозғалтқыш нейрон және бұлшықеттің перифериялық иннервациясы сақталған. Ұзақ уақыт қозғалмау салдарынан екіншілік атрофия болуы мүмкін.</p></li>
+      <li><h4>Қозғалыстың баяулауы және дәлдігінің бұзылуы</h4>
+        <p>Науқас:</p>
+        <ul class="l"><li>Түйме тағуда қиналады.</li><li>Жазуы өзгереді.</li><li>Саусақтардың жеке қозғалыстарын орындау қиындайды.</li><li>Жүргенде аяғын сүйретуі мүмкін.</li></ul></li>
+    </ol>
+
+    <h3>Спастикалық салданудың типтік қалыптары</h3>
+    <article class="card">
+      <h4>Вернике–Манн қалпы <span class="lat">Wernicke–Mann posture</span></h4>
+      <p>Көбінесе инсульттен кейінгі спастикалық гемипарезде кездеседі.</p>
+      <div class="two">
+        <div class="stack"><p class="sub">Қолда</p><ul class="l"><li>Иық денеге жақындайды.</li><li>Шынтақ буыны бүгіледі.</li><li>Білек пронацияда.</li><li>Саусақтар бүгіледі.</li></ul></div>
+        <div class="stack"><p class="sub">Аяқта</p><ul class="l"><li>Жамбас жазылған немесе ішке қарай бұрылған болуы мүмкін.</li><li>Тізе жазылады.</li><li>Табан төмен қарай бүгіледі (эквинус қалпы).</li></ul></div>
+      </div>
+      <p>Науқас жүрген кезде аяғын жартылай шеңбер жасап сыртқа қарай алып жүреді. Бұл — <b>циркумдукция</b> деп аталады.</p>
+      <p><b>Неге бұлай болады?</b> Қолдың бүккіш бұлшықеттері мен аяқтың жазғыш бұлшықеттерінде спастикалық тонус басым болады. Бұл қалып орталық гемипарездің классикалық көріністерінің бірі.</p>
+    </article>
+
+    <h3>Ә. Шеткі салдану <span class="lat">Paralysis peripherica</span></h3>
+    <p>Екінші қозғалтқыш нейронның зақымдалуынан пайда болады. Клиникалық белгілері:</p>
+    <ul class="l">
+      <li><b>Бұлшықет гипотониясы</b> — тонус төмендейді.</li>
+      <li><b>Гипорефлексия немесе арефлексия</b> — рефлекстер төмендейді немесе жойылады.</li>
+      <li><b>Бұлшықет атрофиясы</b> — бұлшықет көлемі кішірейеді.</li>
+      <li><b>Фасцикуляция</b> — бұлшықет талшықтары немесе моторлық бірліктердің еріксіз жиырылуы.</li>
+      <li><b>Фибрилляция</b> — жеке бұлшықет талшықтарының еріксіз белсенділігі, көбіне ЭМГ арқылы анықталады.</li>
+      <li>Патологиялық Бабинский рефлексі болмайды (егер қосарланған орталық зақым болмаса).</li>
+    </ul>
+
+    <h3>Орталық және шеткі салданудың толық салыстырмасы</h3>
+    <div class="tw"><table>
+      <thead><tr><th>Клиникалық белгі</th><th class="c">Орталық</th><th class="p">Шеткі</th></tr></thead>
+      <tbody>
+        <tr><td>Зақымдалған нейрон</td><td>Бірінші</td><td>Екінші</td></tr>
+        <tr><td>Бұлшықет тонусы</td><td>Жоғары</td><td>Төмен</td></tr>
+        <tr><td>Сіңір рефлекстері</td><td>Жоғары</td><td>Төмен/жоқ</td></tr>
+        <tr><td>Бабинский</td><td>Оң болуы мүмкін</td><td>Теріс</td></tr>
+        <tr><td>Клонус</td><td>Болуы мүмкін</td><td>Әдетте жоқ</td></tr>
+        <tr><td>Атрофия</td><td>Жеңіл, екіншілік</td><td>Айқын</td></tr>
+        <tr><td>Фасцикуляция</td><td>Әдетте жоқ</td><td>Болуы мүмкін</td></tr>
+        <tr><td>Парез сипаты</td><td>Бұлшықет топтары</td><td>Жеке бұлшықеттер немесе жүйке аймағы</td></tr>
+        <tr><td>Мысал</td><td>Инсульт</td><td>Перифериялық жүйке жарақаты</td></tr>
+      </tbody>
+    </table></div>
+    <div class="two">
+      <div class="callout key"><span class="cl">Клиникалық мысал</span><p>Науқастың оң қолы мен оң аяғы әлсіз, бұлшықет тонусы жоғары, тізе рефлексі күшейген, Бабинский оң.</p><p><b>Бұл — оң жақты орталық гемипарез.</b></p></div>
+      <div class="callout key"><span class="cl">Ал егер…</span><p>Науқастың табаны салбырап, аяқ басын жоғары көтере алмаса, бұлшықет тонусы төмендеп, ахилл рефлексі әлсіресе, <b>шеткі жүйке немесе түбір зақымдалуы</b> мүмкін.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7 ============ -->
+<section class="sec hue" id="s7" style="--h:292" data-n="7" data-group="Зақымдалу және клиника">
+  <header class="sec-head"><div><p class="eyebrow">7-бөлім</p><h2>Орталық салданудың патологиялық рефлекстері</h2></div></header>
+  <div class="sec-body">
+    <div class="callout exam"><span class="cl">Емтиханда өте маңызды бөлім</span><p>Патологиялық рефлекстер — ересек адамда қалыпты жағдайда болмауы тиіс, орталық жүйке жүйесінің зақымдалуы кезінде пайда болатын рефлекстер.</p></div>
+    <p>Олар пирамидалық жүйенің, әсіресе кортикоспиналдық жолдың зақымдалуын анықтауда маңызды.</p>
+
+    <h3>А. Аяқтағы патологиялық рефлекстер</h3>
+    <article class="card tint">
+      <h4>1. Бабинский рефлексі <span class="lat">Babinski sign</span></h4>
+      <p>Ең маңызды және классикалық патологиялық рефлекс.</p>
+      <div class="two">
+        <div class="stack"><p class="sub">Тексеру әдісі</p><ul class="l"><li>Науқас шалқасынан жатады.</li><li>Дәрігер доғал затпен табанның сыртқы жиегін өкшеден бастап алға қарай жүргізеді.</li><li>Содан кейін табанның алдыңғы бөлігінде ішке қарай бағыттайды.</li></ul></div>
+        <div class="stack"><p class="sub">Оң нәтиже</p><ul class="l"><li>Бас бармақ жоғары қарай жазылады (дорсифлексия).</li><li>Қалған саусақтар желпуіш тәрізді ашылуы мүмкін.</li></ul></div>
+      </div>
+      <p><b>Маңызы:</b> кортикоспиналдық жолдың зақымдалуын көрсетеді.</p>
+      <p><b>Неге пайда болады?</b> Пирамидалық жүйенің тежеуші бақылауы жоғалады. Нәтижесінде қалыпты табан бүгу жауабының орнына патологиялық жазылу жауабы пайда болады.</p>
+    </article>
+    <div class="two">
+      <article class="card"><h4>2. Оппенгейм рефлексі <span class="lat">Oppenheim</span></h4>
+        <dl class="kv"><dt>Тексеру</dt><dd>Дәрігер саусақтарымен асық жіліктің алдыңғы-медиальды бетімен жоғарыдан төмен қарай қысым жасайды.</dd><dt>Оң нәтиже</dt><dd>Аяқтың бас бармағы жоғары қарай жазылады.</dd></dl></article>
+      <article class="card"><h4>3. Гордон рефлексі <span class="lat">Gordon</span></h4>
+        <dl class="kv"><dt>Тексеру</dt><dd>Балтыр бұлшықеттерін қысады.</dd><dt>Оң нәтиже</dt><dd>Бас бармақ жоғары қарай жазылады.</dd></dl></article>
+      <article class="card"><h4>4. Шеффер рефлексі <span class="lat">Schaeffer</span></h4>
+        <dl class="kv"><dt>Тексеру</dt><dd>Ахилл сіңірін қысады.</dd><dt>Оң нәтиже</dt><dd>Бас бармақтың жазылуы.</dd></dl></article>
+      <article class="card"><h4>5. Чаддок рефлексі <span class="lat">Chaddock</span></h4>
+        <dl class="kv"><dt>Тексеру</dt><dd>Табанның сыртқы жиегін емес, сыртқы тобықтың айналасындағы теріні тітіркендіреді.</dd><dt>Оң нәтиже</dt><dd>Бас бармақтың жоғары қарай жазылуы.</dd></dl></article>
+    </div>
+
+    <h3>Ә. Қолдағы патологиялық рефлекстер</h3>
+    <div class="two">
+      <article class="card tint2"><h4>1. Гоффман рефлексі <span class="lat">Hoffmann sign</span></h4>
+        <dl class="kv"><dt>Тексеру</dt><dd>Дәрігер науқастың ортаңғы саусағының тырнақ фалангасын ұстап, төмен қарай тез жібереді немесе тырнақ ұшын шертеді.</dd>
+        <dt>Оң нәтиже</dt><dd>Бас бармақ бүгіледі және ішке қарай қозғалады. Сұқ саусақ немесе басқа саусақтар да бүгілуі мүмкін.</dd>
+        <dt>Маңызы</dt><dd>Жоғары қозғалтқыш нейрондардың, әсіресе мойын деңгейіндегі зақымданудың белгісі болуы мүмкін.</dd></dl>
+        <p>Бірақ жалғыз оң Гоффман белгісі диагноз қоюға жеткіліксіз.</p></article>
+      <article class="card tint2"><h4>2. Тремнер рефлексі <span class="lat">Trömner sign</span></h4>
+        <dl class="kv"><dt>Тексеру</dt><dd>Ортаңғы саусақтың ұшын алақан жағынан жоғары қарай шертеді.</dd><dt>Оң нәтиже</dt><dd>Бас бармақ пен басқа саусақтардың бүгілуі.</dd></dl></article>
+    </div>
+
+    <h3>Б. Басқа патологиялық рефлекстер</h3>
+    <div class="tw"><table>
+      <thead><tr><th>Рефлекс</th><th>Тексеру әдісі</th><th>Оң жауабы</th></tr></thead>
+      <tbody>
+        <tr><td>Россолимо <span class="lat">(Rossolimo)</span></td><td>Аяқ саусақтарының ұшын төменгі жағынан жеңіл соғу</td><td>Саусақтардың бүгілуі</td></tr>
+        <tr><td>Жуковский</td><td>Табанның алдыңғы бөлігін соғу</td><td>Саусақтардың бүгілуі</td></tr>
+        <tr><td>Бехтерев–Мендель</td><td>Табанның сыртқы бетіне соққы жасау</td><td>Саусақтардың бүгілуі</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="callout mem"><span class="cl">Авторлардың атымен аталатын белгілерді есте сақтау</span>
+      <ul class="l">
+        <li><b>Бабинский</b> — табанның патологиялық жазылу рефлексі.</li>
+        <li><b>Оппенгейм</b> — жіліншік бойымен қысым.</li>
+        <li><b>Гордон</b> — балтырды қысу.</li>
+        <li><b>Шеффер</b> — Ахилл сіңірін қысу.</li>
+        <li><b>Чаддок</b> — сыртқы тобық айналасын тітіркендіру.</li>
+        <li><b>Гоффман</b> — қол саусақтарының патологиялық бүгілуі.</li>
+        <li><b>Тремнер</b> — саусақ ұшын алақан жағынан тітіркендіру.</li>
+        <li><b>Россолимо</b> — саусақтардың бүгілуі.</li>
+      </ul>
+    </div>
+    <div class="callout warn"><span class="cl">Маңызды ескерту</span><p>Бабинский рефлексі нәрестелерде қалыпты физиологиялық құбылыс болуы мүмкін. Кортикоспиналдық жолдың жетілуіне байланысты ол әдетте 12–24 ай аралығында жойылады. Сондықтан балаларда жас ерекшелігін ескеру керек.</p></div>
+  </div>
+</section>
+
+<!-- ============ 8 ============ -->
+<section class="sec hue" id="s8" style="--h:46" data-n="8" data-group="Зақымдалу және клиника">
+  <header class="sec-head"><div><p class="eyebrow">8-бөлім</p><h2>Зақымдалу деңгейіне байланысты клиникалық көріністер</h2></div></header>
+  <div class="sec-body">
+    <p>Бұл бөлім зақымдалудың нақты қай жерде екенін анықтауға көмектеседі. Деңгейлер жоғарыдан төмен қарай берілген.</p>
+    <div class="lvl">
+      <article class="lvi hue" style="--h:262"><div>
+        <h3>1. Ми қыртысы зақымдалса</h3>
+        <p>Көбінесе қарама-қарсы жақтағы аяқ-қолдың әлсіздігі байқалады.</p>
+        <ul class="l"><li>Қол немесе аяқтың жеке парезі.</li><li>Оң немесе сол жақты гемипарез.</li><li>Сөйлеу бұзылысы (доминантты жарты шар зақымдалса).</li><li>Құрысу ұстамалары болуы мүмкін.</li><li>Сезімталдық бұзылыстары қатар жүруі мүмкін.</li></ul>
+        <p><b>Мысалы:</b> сол жақ прецентралды иірім зақымдалса, оң жақ аяқ-қол әлсірейді.</p>
+      </div></article>
+      <article class="lvi hue" style="--h:188"><div>
+        <h3>2. Ішкі капсула зақымдалса</h3>
+        <p>Бұл жерде қозғалтқыш талшықтар өте тығыз орналасқан.</p>
+        <ul class="l"><li>Қарама-қарсы жақтың гемипарезі немесе гемиплегиясы.</li><li>Бет, қол және аяқ бір уақытта зақымдалуы мүмкін.</li><li>Орталық бет парезі.</li><li>Орталық гипоглоссальды парез.</li></ul>
+        <p><b>Мысалы:</b> сол жақ ішкі капсула зақымдалса, оң жақ гемипарез пайда болады. Инсульт кезінде жиі кездесетін локализациялардың бірі.</p>
+      </div></article>
+      <article class="lvi hue" style="--h:32"><div>
+        <h3>3. Ортаңғы ми зақымдалса</h3>
+        <p>Пирамидалық жолмен бірге бас-ми жүйкесінің ядролары немесе талшықтары да зақымдалуы мүмкін.</p>
+        <div class="callout key"><span class="cl">Вебер синдромы · Weber syndrome</span>
+          <ul class="l"><li>Зақымдалған жақта III жұп бас-ми жүйкесінің парезі.</li><li>Қарама-қарсы жақта орталық гемипарез.</li></ul></div>
+        <p class="sub">Клиникасы</p>
+        <ul class="l"><li>Зақымдалған жақтың қабағы түседі — птоз.</li><li>Қарашық кеңеюі мүмкін.</li><li>Көз сыртқа және төмен қарай ауытқуы мүмкін.</li><li>Қарама-қарсы қол-аяқ әлсірейді.</li></ul>
+      </div></article>
+      <article class="lvi hue" style="--h:322"><div>
+        <h3>4. Ми көпірі зақымдалса</h3>
+        <p>Ми бағанының айқасқан синдромдары пайда болуы мүмкін. Мысалы, көпірдегі VII жүйкенің талшықтары мен кортикоспиналдық жол қатар зақымдалса:</p>
+        <ul class="l"><li>Зақымдалған жақта перифериялық бет парезі.</li><li>Қарама-қарсы жақта орталық гемипарез.</li></ul>
+        <p>Бұл — <b>Миллар–Гублер синдромына</b> тән көрініс.</p>
+      </div></article>
+      <article class="lvi hue" style="--h:214"><div>
+        <h3>5. Сопақша ми зақымдалса</h3>
+        <p>Пирамидалық айқасуға қатысты зақымдалу орны өте маңызды.</p>
+        <div class="if"><b>Айқасудан жоғары</b><span>Қарама-қарсы жақты гемипарез пайда болады.</span></div>
+        <div class="if"><b>Айқасудан төмен</b><span>Сол жұлын сегментінен төмен қарай зақымдалған жақта орталық парез пайда болады.</span></div>
+      </div></article>
+      <article class="lvi hue" style="--h:6"><div>
+        <h3>6. Жұлын зақымдалса</h3>
+        <p>Мысалы, оң жақ латеральды кортикоспиналдық жол зақымдалды делік. Бұл жол сопақша мида айқасып қойғандықтан, <b>зақымданған жақта (оң жақта) ошақтан төмен орталық парез</b> пайда болады.</p>
+        <p class="sub">Клиникасы</p>
+        <ul class="l"><li>Зақым деңгейінен төмен спастикалық парез.</li><li>Сіңір рефлекстерінің жоғарылауы.</li><li>Бабинский оң.</li><li>Сезімталдық бұзылыстары қатар жүруі мүмкін.</li><li>Зәр шығару және дефекация бұзылуы мүмкін.</li></ul>
+        <p>Егер жұлынның толық көлденең зақымдануы болса, зақым деңгейінен төмен екі жақты қозғалыс пен сезімталдық бұзылыстары дамуы мүмкін.</p>
+        <div class="callout warn"><span class="cl">Маңызды</span><p>Жұлын зақымдануының алғашқы кезеңінде спинальды шок салдарынан гипотония мен арефлексия болуы мүмкін. Кейін спастика мен гиперрефлексия дамиды.</p></div>
+      </div></article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 9 ============ -->
+<section class="sec hue" id="s9" style="--h:168" data-n="9" data-group="Зақымдалу және клиника">
+  <header class="sec-head"><div><p class="eyebrow">9-бөлім</p><h2>Пирамидалық жүйенің зақымдалу синдромдары</h2></div></header>
+  <div class="sec-body">
+    <div class="tw"><table>
+      <thead><tr><th>Синдром</th><th>Анықтамасы</th><th>Клиникалық көрінісі</th></tr></thead>
+      <tbody>
+        <tr><td>Монопарез</td><td>Бір аяқ немесе бір қол әлсіздігі</td><td>Бір аяқ-қолдың күші төмендейді</td></tr>
+        <tr><td>Гемипарез</td><td>Дененің бір жартысының әлсіздігі</td><td>Оң немесе сол қол-аяқ</td></tr>
+        <tr><td>Гемиплегия</td><td>Дененің бір жартысының толық салдануы</td><td>Бір жақта ерікті қозғалыс жоқ</td></tr>
+        <tr><td>Парапарез</td><td>Екі аяқтың әлсіздігі</td><td>Жүру қиындайды</td></tr>
+        <tr><td>Параплегия</td><td>Екі аяқтың толық салдануы</td><td>Екі аяқта қозғалыс жоқ</td></tr>
+        <tr><td>Тетрапарез</td><td>Төрт аяқ-қолдың әлсіздігі</td><td>Қол мен аяқтың барлығы зақымданады</td></tr>
+        <tr><td>Тетраплегия</td><td>Төрт аяқ-қолдың толық салдануы</td><td>Төрт аяқ-қолда ерікті қозғалыс жоқ</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout key"><span class="cl">Клиникалық маңызды айырмашылық</span>
+      <ul class="l">
+        <li><b>Гемипарез</b> — көбіне ми жарты шарының немесе ми бағанының зақымдануымен байланысты.</li>
+        <li><b>Спастикалық парапарез</b> — көбіне жұлынның екі жақты зақымдануында кездеседі.</li>
+        <li><b>Спастикалық тетрапарез</b> — мойын жұлынның екі жақты зақымдануында болуы мүмкін.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 10 ============ -->
+<section class="sec hue" id="s10" style="--h:128" data-n="10" data-group="Дерматомалар және тексеру">
+  <header class="sec-head"><div><p class="eyebrow">10-бөлім</p><h2>Дерматомалар</h2><p class="lat">Dermatomes · міндетті түрде білу керек</p></div></header>
+  <div class="sec-body">
+    <p><b>Дерматома</b> — белгілі бір жұлын сегментінен шығатын сезімтал жүйке түбірімен иннервацияланатын терінің аймағы.</p>
+    <p>Қарапайым түсінікпен: әр жұлын сегменті терінің белгілі бір бөлігінен сезімтал ақпарат қабылдайды.</p>
+    <div class="stack"><p class="sub">Мысалы</p>
+      <div class="chips"><span class="chip"><b>C5</b> — иықтың сыртқы бөлігі</span><span class="chip"><b>C6</b> — бас бармақ</span><span class="chip"><b>C7</b> — ортаңғы саусақ</span><span class="chip"><b>C8</b> — шынашақ</span><span class="chip"><b>L4</b> — балтырдың ішкі беті</span><span class="chip"><b>L5</b> — аяқтың үстіңгі беті, үлкен башпай</span><span class="chip"><b>S1</b> — аяқтың сыртқы жиегі</span></div>
+    </div>
+
+    <div class="two">
+      <div class="stack"><h3>А. Мойын дерматомалары — C1–C8</h3>
+        <div class="tw"><table><thead><tr><th>Сегмент</th><th>Терідегі орналасуы</th></tr></thead><tbody>
+          <tr><td>C1</td><td>Тұрақты дерматомалық аймағы жоқ</td></tr>
+          <tr><td>C2</td><td>Шүйде, бастың артқы бөлігі</td></tr>
+          <tr><td>C3</td><td>Мойынның артқы және бүйір беті</td></tr>
+          <tr><td>C4</td><td>Иықтың жоғарғы бөлігі, бұғана аймағы</td></tr>
+          <tr><td>C5</td><td>Иықтың сыртқы беті, жоғарғы қол</td></tr>
+          <tr><td>C6</td><td>Білектің сыртқы беті, бас бармақ</td></tr>
+          <tr><td>C7</td><td>Ортаңғы саусақ</td></tr>
+          <tr><td>C8</td><td>Шынашақ, қолдың ішкі жиегі</td></tr>
+        </tbody></table></div></div>
+      <div class="stack"><h3>Ә. Кеуде дерматомалары — T1–T12</h3>
+        <div class="tw"><table><thead><tr><th>Сегмент</th><th>Терідегі орналасуы</th></tr></thead><tbody>
+          <tr><td>T1</td><td>Білек пен қолдың ішкі жағымен шектесетін аймақ</td></tr>
+          <tr><td>T2</td><td>Қолтық асты, кеуденің жоғарғы бөлігі</td></tr>
+          <tr><td>T3</td><td>Жоғарғы кеуде</td></tr>
+          <tr><td>T4</td><td>Емізік деңгейі</td></tr>
+          <tr><td>T5</td><td>Емізіктен төменгі кеуде</td></tr>
+          <tr><td>T6</td><td>Төс сүйегінің семсер тәрізді өсіндісі деңгейі</td></tr>
+          <tr><td>T7</td><td>Қабырға доғасының жоғарғы бөлігі</td></tr>
+          <tr><td>T8</td><td>Жоғарғы құрсақ</td></tr>
+          <tr><td>T9</td><td>Кіндікке жақындаған аймақ</td></tr>
+          <tr><td>T10</td><td>Кіндік деңгейі</td></tr>
+          <tr><td>T11</td><td>Кіндіктен төмен</td></tr>
+          <tr><td>T12</td><td>Құрсақтың төменгі бөлігі, шапқа жақын</td></tr>
+        </tbody></table></div></div>
+      <div class="stack"><h3>Б. Бел дерматомалары — L1–L5</h3>
+        <div class="tw"><table><thead><tr><th>Сегмент</th><th>Терідегі орналасуы</th></tr></thead><tbody>
+          <tr><td>L1</td><td>Шап аймағы</td></tr>
+          <tr><td>L2</td><td>Санның алдыңғы жоғарғы бөлігі</td></tr>
+          <tr><td>L3</td><td>Санның алдыңғы-төменгі бөлігі, тізенің ішкі жағы</td></tr>
+          <tr><td>L4</td><td>Тізенің ішкі жағы, балтырдың медиальды беті</td></tr>
+          <tr><td>L5</td><td>Балтырдың сыртқы бөлігі, аяқ басының үсті, үлкен башпай</td></tr>
+        </tbody></table></div></div>
+      <div class="stack"><h3>В. Сегізкөз дерматомалары — S1–S5</h3>
+        <div class="tw"><table><thead><tr><th>Сегмент</th><th>Терідегі орналасуы</th></tr></thead><tbody>
+          <tr><td>S1</td><td>Санның артқы-латеральды бөлігі, балтырдың артқы-сыртқы жағы, аяқтың сыртқы жиегі</td></tr>
+          <tr><td>S2</td><td>Санның артқы бөлігі</td></tr>
+          <tr><td>S3</td><td>Бөксенің төменгі және ішкі бөлігі</td></tr>
+          <tr><td>S4</td><td>Шат аралығы, анус айналасының жоғарғы бөлігі</td></tr>
+          <tr><td>S5</td><td>Анус айналасының ең жақын тері аймағы</td></tr>
+        </tbody></table></div></div>
+    </div>
+
+    <h3>Дерматомалардың клиникалық маңызы</h3>
+    <p>Дерматомалар жүйке түбірінің зақымдалған деңгейін анықтауға көмектеседі.</p>
+    <div class="two">
+      <article class="card tint"><h4>1-мысал. C6 радикулопатиясы</h4>
+        <ul class="l"><li>Мойыннан қолға тарайтын ауырсынуға шағымданады.</li><li>Бас бармақ аймағында ұю бар.</li><li>C6 аймағында сезімталдық төмендеген.</li><li>Бицепс және брахиорадиалдық рефлекстер әлсіреуі мүмкін.</li></ul>
+        <p><b>Бұл C6 жүйке түбірінің зақымдалуын көрсетеді.</b></p></article>
+      <article class="card tint"><h4>2-мысал. L5 радикулопатиясы</h4>
+        <ul class="l"><li>Белден аяққа тарайтын ауырсынуға шағымданады.</li><li>Аяқтың үстіңгі бетінде және үлкен башпайда ұю бар.</li><li>Үлкен башпайды жоғары көтеру әлсіреген.</li><li>Өкшемен жүру қиындауы мүмкін.</li></ul>
+        <p><b>Бұл L5 түбірінің зақымдалуына тән.</b></p></article>
+      <article class="card tint"><h4>3-мысал. S1 радикулопатиясы</h4>
+        <ul class="l"><li>Ауырсыну бөкседен аяқтың артқы-сыртқы бетіне тарайды.</li><li>Аяқтың сыртқы жиегі ұйиды.</li><li>Аяқ ұшымен жүру қиындайды.</li><li>Ахилл рефлексі төмендеуі мүмкін.</li></ul>
+        <p><b>Бұл S1 түбірінің зақымдалуына тән.</b></p></article>
+    </div>
+
+    <h3>Дерматома мен миотоманың айырмашылығы</h3>
+    <p>Осы екеуін шатастырмау керек.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Дерматома</th><th>Миотома</th></tr></thead>
+      <tbody>
+        <tr><td>Терінің сезімтал аймағы</td><td>Белгілі сегментпен байланысты бұлшықет қозғалысы</td></tr>
+        <tr><td>Сезімтал түбір</td><td>Қозғалтқыш түбір</td></tr>
+        <tr><td>Мысалы, C6 — бас бармақ</td><td>C6 — білекті жазу, шынтақты бүгуге қатысу</td></tr>
+        <tr><td>L5 — аяқ басының үсті</td><td>L5 — үлкен башпайды жазу</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Жұлын сегменттерін тексерудің маңызды нүктелері</h3>
+    <p>Медициналық тексеруде мына нүктелерді жаттап ал:</p>
+    <div class="tw"><table>
+      <thead><tr><th>Сегмент</th><th>Тексерілетін негізгі нүкте</th></tr></thead>
+      <tbody>
+        <tr><td>C5</td><td>Шынтақтың сыртқы шұңқыры</td></tr>
+        <tr><td>C6</td><td>Бас бармақ</td></tr>
+        <tr><td>C7</td><td>Ортаңғы саусақ</td></tr>
+        <tr><td>C8</td><td>Шынашақ</td></tr>
+        <tr><td>T1</td><td>Шынтақтың ішкі шұңқыры</td></tr>
+        <tr><td>T4</td><td>Емізік деңгейі</td></tr>
+        <tr><td>T10</td><td>Кіндік деңгейі</td></tr>
+        <tr><td>L1</td><td>Шап аймағы</td></tr>
+        <tr><td>L2</td><td>Санның алдыңғы ортасы</td></tr>
+        <tr><td>L3</td><td>Тізенің ішкі бөлігі</td></tr>
+        <tr><td>L4</td><td>Ішкі тобық</td></tr>
+        <tr><td>L5</td><td>Аяқ басының үсті, үшінші башпай</td></tr>
+        <tr><td>S1</td><td>Табанның сыртқы жиегі</td></tr>
+        <tr><td>S2</td><td>Тізенің артқы шұңқыры</td></tr>
+        <tr><td>S3</td><td>Отырғыш сүйек аймағы</td></tr>
+        <tr><td>S4–S5</td><td>Перианальды аймақ</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout mem"><span class="cl">Есте сақта</span><p>Дерматома — сезімталдықты тексеруге арналған карта. Ал пирамидалық жол — қозғалысты басқаруға арналған жүйе. Олар анатомиялық жағынан бөлек, бірақ жұлын зақымдалғанда екеуі де қатар бұзылуы мүмкін.</p></div>
+  </div>
+</section>
+
+<!-- ============ 11 ============ -->
+<section class="sec hue" id="s11" style="--h:204" data-n="11" data-group="Дерматомалар және тексеру">
+  <header class="sec-head"><div><p class="eyebrow">11-бөлім</p><h2>Пирамидалық жүйенің зақымдалуындағы толық клиникалық тексеру</h2></div></header>
+  <div class="sec-body">
+    <p>Науқасты тексергенде қозғалыс күшін ғана емес, бұлшықет тонусын, рефлекстерді, патологиялық белгілерді және сезімталдықты бағалаймыз.</p>
+
+    <h3>1. Анамнез жинау</h3>
+    <p class="sub">Сұралатын мәліметтер</p>
+    <ul class="l cols"><li>Әлсіздік қашан басталды?</li><li>Кенеттен бе, әлде біртіндеп пе?</li><li>Бір жақта ма, екі жақта ма?</li><li>Қолда ма, аяқта ма?</li><li>Ұю немесе ауырсыну бар ма?</li><li>Сөйлеу, жұтыну бұзылған ба?</li><li>Зәр шығару, дефекация өзгерген бе?</li><li>Жарақат немесе инфекция болған ба?</li></ul>
+    <div class="callout warn"><span class="cl">Маңызды</span><p>Кенеттен пайда болған бір жақты әлсіздік инсультті жоққа шығаруды талап етеді.</p></div>
+
+    <h3>2. Қозғалыс күшін бағалау</h3>
+    <p>Бұлшықет күшін <b>MRC (Medical Research Council)</b> шкаласымен бағалайды.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Балл</th><th>Бағасы</th><th>Сипаттамасы</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td>0/5</td><td>Бұлшықет жиырылуы жоқ</td></tr>
+        <tr><td>1</td><td>1/5</td><td>Әлсіз жиырылу бар, қозғалыс жоқ</td></tr>
+        <tr><td>2</td><td>2/5</td><td>Ауырлық күшін жойғанда қозғалады</td></tr>
+        <tr><td>3</td><td>3/5</td><td>Ауырлық күшіне қарсы қозғалады</td></tr>
+        <tr><td>4</td><td>4/5</td><td>Қарсылыққа қарсы қозғалады, бірақ күші төмен</td></tr>
+        <tr><td>5</td><td>5/5</td><td>Қалыпты бұлшықет күші</td></tr>
+      </tbody>
+    </table></div>
+    <p><b>Мысалы,</b> науқастың оң қолы 3/5, оң аяғы 4/5 болса, оң жақты гемипарез болуы мүмкін.</p>
+
+    <h3>3. Бұлшықет тонусын тексеру</h3>
+    <p>Дәрігер аяқ-қолды пассивті түрде бүгіп-жазады.</p>
+    <ul class="l"><li><b>Гипертонус</b> — қарсылық жоғары.</li><li><b>Гипотонус</b> — қарсылық төмен.</li><li><b>Қалыпты тонус</b> — физиологиялық қарсылық.</li></ul>
+    <p>Спастикада жылдам пассивті қозғалыс кезінде қарсылық күшейеді.</p>
+
+    <h3>4. Сіңір рефлекстерін тексеру</h3>
+    <div class="tw"><table>
+      <thead><tr><th>Рефлекс</th><th>Тексеру орны</th><th>Жұлын сегменті</th></tr></thead>
+      <tbody>
+        <tr><td>Бицепс рефлексі</td><td>Бицепс сіңірі</td><td>C5–C6</td></tr>
+        <tr><td>Брахиорадиалдық</td><td>Кәрі жілік сүйегінің біз тәрізді өсіндісі маңы</td><td>C5–C6</td></tr>
+        <tr><td>Трицепс</td><td>Трицепс сіңірі</td><td>C7–C8</td></tr>
+        <tr><td>Тізе</td><td>Тізе тобығы астындағы сіңір</td><td>L3–L4</td></tr>
+        <tr><td>Ахилл</td><td>Ахилл сіңірі</td><td>S1–S2</td></tr>
+      </tbody>
+    </table></div>
+    <p class="sub">Рефлекстердің бағасы</p>
+    <div class="tw"><table>
+      <thead><tr><th>Балл</th><th>Мағынасы</th></tr></thead>
+      <tbody><tr><td>0</td><td>жоқ</td></tr><tr><td>1+</td><td>төмендеген</td></tr><tr><td>2+</td><td>қалыпты</td></tr><tr><td>3+</td><td>жоғарылаған</td></tr><tr><td>4+</td><td>өте жоғары, клонус болуы мүмкін</td></tr></tbody>
+    </table></div>
+
+    <h3>5. Патологиялық рефлекстер</h3>
+    <div class="chips"><span class="chip">Бабинский</span><span class="chip">Оппенгейм</span><span class="chip">Гордон</span><span class="chip">Шеффер</span><span class="chip">Чаддок</span><span class="chip">Гоффман</span><span class="chip">Тремнер</span></div>
+
+    <h3>6. Сезімталдықты тексеру</h3>
+    <p>Салыстырып тексеріледі:</p>
+    <ul class="l cols"><li>Ауырсыну сезімі.</li><li>Температура сезімі.</li><li>Жанасу сезімі.</li><li>Діріл сезімі.</li><li>Буын-бұлшықет сезімі.</li></ul>
+    <p>Осы кезде дерматомалар картасы қолданылады.</p>
+
+    <h3>7. Координация мен жүрісті тексеру</h3>
+    <ul class="l cols"><li>Саусақ-мұрын сынамасы.</li><li>Өкше-тізе сынамасы.</li><li>Ромберг сынамасы.</li><li>Қалыпты жүру.</li><li>Өкшемен жүру.</li><li>Аяқ ұшымен жүру.</li><li>Тандемдік жүру.</li></ul>
+    <p>Бұл сынамалар басқа неврологиялық жүйелердің де жағдайын бағалауға көмектеседі.</p>
+  </div>
+</section>
+
+<!-- ============ 12 ============ -->
+<section class="sec hue" id="s12" style="--h:350" data-n="12" data-group="Диагностика және ем">
+  <header class="sec-head"><div><p class="eyebrow">12-бөлім</p><h2>Диагностикасы</h2></div></header>
+  <div class="sec-body">
+    <p>Пирамидалық жүйенің зақымдалуын диагностикалауда басты мақсат — <b>зақымдалған аймақты анықтау, себебін табу және зақымданудың дәрежесін бағалау.</b></p>
+
+    <h3>А. Неврологиялық тексеру</h3>
+    <p>Бірінші кезекте:</p>
+    <ul class="l cols"><li>Ес деңгейін бағалау.</li><li>Бас-ми жүйкелерін тексеру.</li><li>Бұлшықет күшін бағалау.</li><li>Бұлшықет тонусын анықтау.</li><li>Сіңір және периостальды рефлекстерді тексеру.</li><li>Патологиялық рефлекстерді анықтау.</li><li>Сезімталдықты дерматомалар бойынша тексеру.</li><li>Жүріс пен координацияны бағалау.</li><li>Жамбас ағзалары қызметін бағалау.</li></ul>
+
+    <h3>Ә. Аспаптық диагностика</h3>
+    <div class="two">
+      <article class="card tint"><h4>1. Мидың МРТ-сы</h4><p class="sub">Мыналарды анықтайды</p>
+        <ul class="l"><li>Ми ісіктері.</li><li>Демиелинизация ошақтары.</li><li>Инсульттен кейінгі өзгерістер.</li><li>Ми тінінің зақымдалуы.</li><li>Ми бағанының патологиялары.</li></ul></article>
+      <article class="card tint"><h4>2. Мидың КТ-сы</h4><p class="sub">Әсіресе жедел жағдайда маңызды</p>
+        <ul class="l"><li>Ми ішіне қан құйылу.</li><li>Бас-ми жарақаты.</li><li>Ірі құрылымдық өзгерістер.</li></ul>
+        <p>Жедел инсульт күдігінде алдымен контрастсыз КТ жасалуы мүмкін.</p></article>
+      <article class="card tint"><h4>3. Жұлынның МРТ-сы</h4><p class="sub">Көрсеткіштері</p>
+        <ul class="l"><li>Жұлынның қысылуы.</li><li>Жұлын ісігі.</li><li>Миелит.</li><li>Омыртқааралық диск жарығы және компрессиялық миелопатия.</li><li>Жұлынның құрылымдық зақымдануы.</li></ul></article>
+      <article class="card tint"><h4>4. Электромиография — ЭМГ</h4>
+        <p>Бұлшықет пен перифериялық қозғалтқыш жүйенің функционалдық жағдайын зерттейді.</p>
+        <p class="sub">Негізгі мақсаты</p>
+        <ul class="l"><li>Шеткі нейрон зақымдануын анықтау.</li><li>Радикулопатияны диагностикалау.</li><li>Перифериялық нейропатияны анықтау.</li><li>Моторлық нейрон ауруларын бағалау.</li></ul>
+        <p><b>Маңызды:</b> таза пирамидалық жол зақымдануын ЭМГ тікелей дәлелдемейді. Ол көбіне шеткі қозғалтқыш жүйенің жағдайын бағалауға көмектеседі.</p></article>
+    </div>
+    <article class="card tint"><h4>5. Электроэнцефалография — ЭЭГ</h4>
+      <p>Құрысу ұстамалары болған жағдайда қолданылады. Ол эпилептиформды белсенділікті бағалайды, бірақ пирамидалық жолдың зақымдануын тікелей анықтамайды.</p></article>
+
+    <h3>Б. Зертханалық диагностика</h3>
+    <p>Клиникалық жағдайға байланысты:</p>
+    <ul class="l cols"><li>Жалпы қан анализі.</li><li>Биохимиялық қан анализі.</li><li>Электролиттер.</li><li>Глюкоза.</li><li>В12 витамині.</li><li>Қалқанша без гормондары.</li><li>Қабыну көрсеткіштері.</li><li>Аутоиммундық зерттеулер.</li><li>Қажет болса жұлын сұйықтығын зерттеу.</li></ul>
+    <p>Барлық анализ әр науқасқа бірдей тағайындалмайды. Себепке байланысты таңдалады.</p>
+  </div>
+</section>
+
+<!-- ============ 13 ============ -->
+<section class="sec hue" id="s13" style="--h:152" data-n="13" data-group="Диагностика және ем">
+  <header class="sec-head"><div><p class="eyebrow">13-бөлім</p><h2>Емі</h2><p class="lat">Емдеу зақымдалудың себебіне байланысты</p></div></header>
+  <div class="sec-body">
+    <p>Пирамидалық жүйенің зақымдалуын емдеу кезінде тек бұлшықет тонусын төмендету жеткіліксіз. <b>Негізгі ауруды емдеу, қозғалысты қалпына келтіру және асқынулардың алдын алу қажет.</b></p>
+
+    <h3>1. Этиотропты ем</h3>
+    <p>Аурудың нақты себебіне бағытталған ем.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Себебі</th><th>Емдеу бағыты</th></tr></thead>
+      <tbody>
+        <tr><td>Ишемиялық инсульт</td><td>Реперфузиялық емге көрсеткіштерді бағалау, тромболизис немесе тромбэктомия</td></tr>
+        <tr><td>Геморрагиялық инсульт</td><td>Қан қысымын бақылау, нейрохирургиялық ем көрсеткіштерін бағалау</td></tr>
+        <tr><td>Ми немесе жұлын ісігі</td><td>Нейрохирургия, сәулелік немесе дәрілік ем</td></tr>
+        <tr><td>Көп ошақты склероз</td><td>Иммуномодуляциялық ем, өршу кезінде көрсеткіш бойынша кортикостероидтар</td></tr>
+        <tr><td>Миелит</td><td>Себебіне қарай қабынуға қарсы немесе инфекцияға қарсы ем</td></tr>
+        <tr><td>Жұлын компрессиясы</td><td>Компрессияны жою, қажет болса хирургиялық ем</td></tr>
+        <tr><td>Бас-ми немесе жұлын жарақаты</td><td>Жарақаттың сипатына қарай шұғыл ем</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn"><span class="cl">Ескерту</span><p>Инсульт белгілері кенеттен пайда болса, науқасқа шұғыл медициналық көмек қажет. Өз бетінше дәрі беріп уақыт жоғалтуға болмайды.</p></div>
+
+    <h3>2. Симптоматикалық ем</h3>
+    <p>Спастиканы төмендету үшін:</p>
+    <div class="two">
+      <article class="card tint"><h4>Баклофен <span class="lat">Baclofen</span></h4>
+        <ul class="l"><li>GABA-B рецепторларының агонисі.</li><li>Жұлындағы қоздырғыш нейромедиаторлардың бөлінуін төмендетеді.</li><li>Спастиканы азайтады.</li></ul></article>
+      <article class="card tint"><h4>Тизанидин <span class="lat">Tizanidine</span></h4>
+        <ul class="l"><li>α2-адренорецепторлардың агонисі.</li><li>Жұлындағы қоздырғыш импульстардың берілуін төмендетеді.</li><li>Бұлшықет тонусын азайтады.</li></ul></article>
+      <article class="card tint"><h4>Ботулин токсині А</h4>
+        <ul class="l"><li>Нейробұлшықеттік синапста ацетилхолиннің бөлінуін тежейді.</li><li>Белгілі бір бұлшықеттердің спастикасын азайтады.</li><li>Әсіресе ошақты спастикада қолданылады.</li></ul></article>
+      <article class="card tint"><h4>Диазепам</h4>
+        <ul class="l"><li>GABA-A рецепторлары арқылы әсер етеді.</li><li>Бұлшықет босаңсытқыш әсері бар.</li><li>Ұйқышылдық пен тыныс тежелу қаупіне байланысты шектеулі көрсеткіштер бойынша пайдаланылады.</li></ul></article>
+    </div>
+    <div class="callout warn"><span class="cl">Ескерту</span><p>Дәрілерді таңдау науқастың жасына, ауруына, спастиканың ауырлығына және жанама әсерлеріне байланысты. Өздігінен қабылдауға болмайды.</p></div>
+
+    <h3>3. Реабилитациялық ем</h3>
+    <p>Бұл ем өте маңызды.</p>
+    <ul class="l cols"><li>Емдік дене шынықтыру (ЛФК).</li><li>Кинезотерапия.</li><li>Емдік массаж — қосымша әдіс ретінде.</li><li>Қозғалыс дағдыларын қайта үйрету.</li><li>Тепе-теңдікті дамыту.</li><li>Жүруді қалпына келтіру.</li><li>Қажет болса ортездер қолдану.</li><li>Күнделікті өмірдегі дағдыларды қалпына келтіру үшін эрготерапия.</li></ul>
+
+    <h3>4. Хирургиялық ем</h3>
+    <p class="sub">Көрсеткіштері</p>
+    <ul class="l"><li>Ми немесе жұлын ісігі.</li><li>Жұлынның қатты компрессиясы.</li><li>Кейбір жарақаттар.</li><li>Кейбір ауыр, емге көнбейтін спастикалық жағдайлар.</li></ul>
+    <p>Ауыр спастикада арнайы науқастарға интратекальды баклофен помпасы немесе ортопедиялық нейрохирургиялық әдістер қарастырылуы мүмкін.</p>
+  </div>
+</section>
+
+<!-- ============ 14 ============ -->
+<section class="sec hue" id="s14" style="--h:340" data-n="14" data-group="Диагностика және ем">
+  <header class="sec-head"><div><p class="eyebrow">14-бөлім</p><h2>Балалардағы пирамидалық жүйенің ерекшеліктері</h2><p class="lat">Балалар неврологиясында міндетті түрде білу керек</p></div></header>
+  <div class="sec-body">
+    <p>Жаңа туған нәрестелерде пирамидалық жүйе толық жетілмеген. Сондықтан:</p>
+    <ul class="l"><li>Бұлшықет тонусының ерекшеліктері болады.</li><li>Физиологиялық бүгу қалпы байқалады.</li><li>Кейбір патологиялық болып саналатын рефлекстер ерте жаста физиологиялық болуы мүмкін.</li><li>Бабинский рефлексі нәрестелерде қалыпты болуы мүмкін.</li><li>Қозғалыс дағдылары жасына қарай біртіндеп қалыптасады.</li></ul>
+    <h3>Пирамидалық жүйе зақымдалуының балалардағы себептері</h3>
+    <ul class="l cols"><li>Перинаталдық гипоксия.</li><li>Шала туу және ақ заттың перивентрикулярлық зақымдануы.</li><li>Бас-ми жарақаты.</li><li>Инфекциялық аурулар.</li><li>Туа біткен ми ақаулары.</li><li>Генетикалық және нейродегенеративті аурулар.</li></ul>
+    <h3>Балалардағы негізгі клиникалық көрінісі</h3>
+    <article class="card tint"><h4>Балалар церебралды сал ауруы (БЦС)</h4>
+      <p class="sub">Спастикалық түрінде</p>
+      <ul class="l"><li>Бұлшықет тонусы жоғары.</li><li>Қозғалыс дамуы кешеуілдейді.</li><li>Сіңір рефлекстері жоғарылайды.</li><li>Бабинский рефлексі жасына сәйкес емес кезеңде сақталуы мүмкін.</li><li>Патологиялық қалыптар пайда болады.</li><li>Жүру, отыру, тұру қабілеті бұзылады.</li></ul></article>
+    <div class="callout key"><span class="cl">Маңызды</span><p>БЦС — тек пирамидалық жүйенің ауруы емес, дамып келе жатқан мидың тұрақты зақымдануынан туындайтын қозғалыс пен дене қалпын бақылау бұзылыстарының тобы.</p></div>
+  </div>
+</section>
+
+<!-- ============ 15 ============ -->
+<section class="sec hue" id="s15" style="--h:84" data-n="15" data-group="Бекіту">
+  <header class="sec-head"><div><p class="eyebrow">15-бөлім</p><h2>Пирамидалық және экстрапирамидалық жүйенің айырмашылығы</h2><p class="lat">Оқытушы қосымша сұрақ ретінде қоюы мүмкін</p></div></header>
+  <div class="sec-body">
+    <div class="tw"><table>
+      <thead><tr><th>Пирамидалық жүйе</th><th>Экстрапирамидалық жүйе</th></tr></thead>
+      <tbody>
+        <tr><td>Ерікті қозғалысты басқарады</td><td>Қозғалысты автоматтандыруға және реттеуге қатысады</td></tr>
+        <tr><td>Негізгі жолдары: кортикоспиналдық, кортикобульбарлық</td><td>Базальды ядролар және олардың байланыстары, төмендейтін жолдар</td></tr>
+        <tr><td>Зақымдалса парез, спастика</td><td>Зақымдалса гипокинезия, гиперкинезия, ригидтілік</td></tr>
+        <tr><td>Бабинский оң болуы мүмкін</td><td>Оқшауланған экстрапирамидалық зақымда Бабинский тән емес</td></tr>
+        <tr><td>Гиперрефлексия болуы мүмкін</td><td>Рефлекстер көбіне сақталады</td></tr>
+      </tbody>
+    </table></div>
+    <p class="sub">Мысал</p>
+    <ul class="l">
+      <li>Пирамидалық жүйе зақымдалуы — инсульттен кейінгі спастикалық гемипарез.</li>
+      <li>Экстрапирамидалық жүйе зақымдалуы — Паркинсон ауруындағы брадикинезия, ригидтілік, тыныштық треморы.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 16 ============ -->
+<section class="sec hue" id="s16" style="--h:276" data-n="16" data-group="Бекіту">
+  <header class="sec-head"><div><p class="eyebrow">16-бөлім</p><h2>Авторлар және неврологиядағы маңызды белгілер</h2></div></header>
+  <div class="sec-body">
+    <div class="tw"><table>
+      <thead><tr><th>Автор</th><th>Неврологиялық белгі</th></tr></thead>
+      <tbody>
+        <tr><td>Babinski</td><td>Табанның патологиялық жазылу рефлексі</td></tr>
+        <tr><td>Oppenheim</td><td>Жіліншік бойын тітіркендіру арқылы патологиялық рефлекс</td></tr>
+        <tr><td>Gordon</td><td>Балтырды қысу арқылы патологиялық рефлекс</td></tr>
+        <tr><td>Schaeffer</td><td>Ахилл сіңірін қысу арқылы патологиялық рефлекс</td></tr>
+        <tr><td>Chaddock</td><td>Сыртқы тобық маңын тітіркендіру</td></tr>
+        <tr><td>Rossolimo</td><td>Аяқ саусақтарының бүгілу рефлексі</td></tr>
+        <tr><td>Hoffmann</td><td>Қолдағы патологиялық бүгілу рефлексі</td></tr>
+        <tr><td>Trömner</td><td>Қол саусақтарын тітіркендіру рефлексі</td></tr>
+        <tr><td>Wernicke–Mann</td><td>Спастикалық гемипарездегі аяқ-қол қалпы</td></tr>
+        <tr><td>Weber</td><td>Ортаңғы мидағы айқасқан синдром</td></tr>
+        <tr><td>Millard–Gubler</td><td>Көпірдегі айқасқан синдром</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ============ 17 ============ -->
+<section class="sec hue" id="s17" style="--h:14" data-n="17" data-group="Бекіту">
+  <header class="sec-head"><div><p class="eyebrow">17-бөлім</p><h2>Клиникалық есептер</h2><p class="lat">Тақырыпты бекіту · емтиханда жиі кездесетін клиникалық ойлау</p></div></header>
+  <div class="sec-body">
+    <p>Мұндай жағдайлар емтиханда жиі кездесетін клиникалық ойлауды қалыптастырады. Алдымен өзің жауап бер, содан кейін жауапты ашып тексер.</p>
+
+    <article class="card case">
+        <h3>Клиникалық жағдай №1</h3>
+        <p>Науқас 60 жаста. Кенеттен оң қолы мен аяғында әлсіздік пайда болған. Тексеру кезінде:</p>
+        <ul class="l"><li>Оң жақта бұлшықет күші 2/5.</li><li>Тонус жоғары.</li><li>Тізе рефлексі күшейген.</li><li>Бабинский оң.</li></ul>
+        <p><b>Сұрақ: зақымдалу қайда?</b></p>
+      
+      <details class="reveal"><summary>Жауапты көрсету</summary>
+      <div class="ans callout key"><span class="cl">Жауап</span>
+        <p>Оң жақты <b>орталық гемипарез</b> (тонус ↑, рефлекс ↑, Бабинский оң). Орталық зақым қарама-қарсы жақта болады, сондықтан ошақ <b>сол жарты шарда</b>: сол жақ ішкі капсула немесе сол жақ қыртыстың моторлық аймағы.</p>
+        <p>Кенеттен басталған бір жақты әлсіздік инсультті жоққа шығаруды талап етеді: шұғыл медициналық көмек және КТ/МРТ.</p></div>
+      </details>
+    </article>
+
+    <article class="card case">
+        <h3>Клиникалық жағдай №2</h3>
+        <p>Науқаста екі аяқта әлсіздік бар. Бұлшықет тонусы жоғары, екі жақты Бабинский оң, сезімталдық кіндік деңгейінен төмен бұзылған, зәр шығару қиындаған.</p>
+      
+      <details class="reveal"><summary>Жауапты көрсету</summary>
+      <div class="ans callout key"><span class="cl">Жауап</span>
+        <p><b>Спастикалық парапарез</b> + екі жақты Бабинский + жамбас ағзалары қызметінің бұзылуы: жұлынның екі жақты зақымдануы. Кіндік деңгейі — T10 дерматомасы, яғни ошақ кеуде жұлынында, шамамен <b>T10 деңгейінде</b>.</p>
+        <p>Мүмкін себептері: компрессиялық миелопатия, ісік, миелит. Жұлынның МРТ-сы көрсетіледі.</p></div>
+      </details>
+    </article>
+
+    <article class="card case">
+        <h3>Клиникалық жағдай №3</h3>
+        <p>Науқастың бас бармағында ұю, білектің сыртқы жағында сезімталдық төмендеуі және бицепс рефлексінің әлсіреуі байқалады.</p>
+      
+      <details class="reveal"><summary>Жауапты көрсету</summary>
+      <div class="ans callout key"><span class="cl">Жауап</span>
+        <p><b>C6 радикулопатиясы</b> (C6 жүйке түбірінің зақымдалуы). C6 дерматомасы — бас бармақ және білектің сыртқы беті, бицепс рефлексі C5–C6 сегментімен жабылады.</p>
+        <p>Рефлекс жоғарыламай, <b>әлсірегені</b> шеткі зақымды көрсетеді. Бұл пирамидалық жолдың зақымдануы емес.</p></div>
+      </details>
+    </article>
+  </div>
+</section>
+
+<!-- ============ 18 ============ -->
+<section class="sec hue" id="s18" style="--h:232" data-n="18" data-group="Бекіту">
+  <header class="sec-head"><div><p class="eyebrow">18-бөлім</p><h2>Емтиханға арналған ең маңызды қорытынды</h2></div></header>
+  <div class="sec-body">
+    <div class="callout exam"><span class="cl">Пирамидалық жүйенің негізгі формуласы</span><p style="font-size:20px;font-weight:700">Орталық зақым = спастика + гиперрефлексия + Бабинский</p></div>
+    <h3>Нені есте сақтау керек</h3>
+    <ul class="l">
+      <li>Пирамидалық жүйе екі негізгі жолдан тұрады: <b>кортикоспиналдық және кортикобульбарлық.</b></li>
+      <li>Бірінші нейрон ми қыртысында орналасады.</li>
+      <li>Екінші нейрон жұлынның алдыңғы мүйізінде немесе ми бағанының қозғалтқыш ядроларында орналасады.</li>
+      <li>Кортикоспиналдық талшықтардың <b>85–90%</b>-ы сопақша мида айқасады.</li>
+      <li>Орталық зақымда — гипертонус, гиперрефлексия, клонус, Бабинский.</li>
+      <li>Шеткі зақымда — гипотонус, гипорефлексия, атрофия, фасцикуляция.</li>
+      <li>Дерматома жүйке түбірінің сезімталдық аймағын көрсетеді.</li>
+      <li>Жұлын зақымдалғанда қозғалыс, сезімталдық және жамбас ағзаларының қызметі қатар бұзылуы мүмкін.</li>
+    </ul>
+    <div class="callout mem"><span class="cl">Кеңес</span><p>Бұл тақырыпты оқығанда ең алдымен үш нәрсені жақсы меңгер: пирамидалық жолдың анатомиялық жүрісі, орталық пен шеткі салданудың айырмашылығы және зақымдалу деңгейіне қарай клиникалық белгілердің өзгеруі. Осы үшеуін түсінсең, клиникалық есептерді де әлдеқайда оңай шығарасың.</p></div>
+    <h3>Ұсынылатын әдебиеттер</h3>
+    <ul class="l">
+      <li><b>DeJong’s The Neurologic Examination</b> — неврологиялық тексеру және клиникалық белгілер.</li>
+      <li><b>Adams and Victor’s Principles of Neurology</b> — жүйке жүйесінің аурулары және клиникалық синдромдар.</li>
+      <li><b>Blumenfeld, Neuroanatomy Through Clinical Cases</b> — анатомияны клиникамен байланыстыру.</li>
+      <li><b>StatPearls</b> — Neuroanatomy, Upper Motor Neuron Signs.</li>
+      <li><b>University of Texas, Neuroscience Online</b> — кортикоспиналдық жолдардың анатомиясы.</li>
+    </ul>
+  </div>
+</section>
+
+      <p class="foot">Неврология пәні бойынша пирамидалық жүйе конспектісі. Оқу материалы, емдеу нұсқаулығы емес.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var $=function(s,r){return (r||document).querySelector(s)};
+  var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+  var root=document.documentElement;
+  var secs=$$('.sec');
+  var navList=$('#navList');
+
+  /* index + spectrum bar */
+  var lastGroup='';
+  secs.forEach(function(s){
+    var g=s.dataset.group;
+    if(g!==lastGroup){var p=document.createElement('p');p.className='grp';p.textContent=g;navList.appendChild(p);lastGroup=g;}
+    var title=s.querySelector('h2').textContent;
+    var hue=s.style.getPropertyValue('--h');
+    var a=document.createElement('a');a.href='#'+s.id;a.className='hue';a.style.setProperty('--h',hue);a.dataset.for=s.id;
+    a.innerHTML='<span class="n"></span><span class="t"></span><span class="ck" aria-hidden="true"></span>';
+    a.querySelector('.n').textContent=s.dataset.n;a.querySelector('.t').textContent=title;
+    navList.appendChild(a);
+    var b=document.createElement('a');b.href='#'+s.id;b.className='hue';b.style.setProperty('--h',hue);
+    b.title=s.dataset.n+'. '+title;b.setAttribute('aria-label',b.title);
+    $('#spectrum').appendChild(b);
+  });
+
+  /* "read" marks */
+  var done={};
+  try{done=JSON.parse(localStorage.getItem('pyr-done')||'{}')||{}}catch(e){done={}}
+  function save(){try{localStorage.setItem('pyr-done',JSON.stringify(done))}catch(e){}}
+  function paint(){
+    var n=0;
+    secs.forEach(function(s){
+      var on=!!done[s.id];if(on)n++;
+      var btn=$('.done',s);if(btn){btn.setAttribute('aria-pressed',on?'true':'false');btn.lastChild.textContent=on?'Оқыдым':'Оқыдым деп белгілеу';}
+      var link=$('.nav-list a[data-for="'+s.id+'"]');if(link)link.classList.toggle('is-done',on);
+    });
+    $('#progT').textContent=n+' / '+secs.length+' оқылды';
+    $('#progB').style.width=(n/secs.length*100)+'%';
+  }
+  secs.forEach(function(s){
+    var btn=document.createElement('button');btn.type='button';btn.className='done';btn.setAttribute('aria-pressed','false');
+    btn.appendChild(document.createTextNode('Оқыдым деп белгілеу'));
+    btn.addEventListener('click',function(){done[s.id]=!done[s.id];if(!done[s.id])delete done[s.id];save();paint();});
+    $('.sec-head',s).appendChild(btn);
+  });
+  paint();
+
+  /* current chapter */
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(e.isIntersecting){
+          $$('.nav-list a').forEach(function(a){a.removeAttribute('aria-current');});
+          var l=$('.nav-list a[data-for="'+e.target.id+'"]');
+          if(l){l.setAttribute('aria-current','true');
+            var nav=$('#nav');var r=l.getBoundingClientRect(),nr=nav.getBoundingClientRect();
+            if(r.top<nr.top+60||r.bottom>nr.bottom-20){try{nav.scrollTo({top:nav.scrollTop+r.top-nr.top-120})}catch(x){}}
+          }
+        }
+      });
+    },{rootMargin:'-15% 0px -75% 0px'});
+    secs.forEach(function(s){io.observe(s);});
+  }
+
+  /* theme */
+  function isDark(){var t=root.dataset.theme;return t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;}
+  try{var st=localStorage.getItem('pyr-theme');if(st)root.dataset.theme=st;}catch(e){}
+  $$('.js-theme').forEach(function(b){b.addEventListener('click',function(){
+    var next=isDark()?'light':'dark';root.dataset.theme=next;
+    try{localStorage.setItem('pyr-theme',next)}catch(e){}
+  });});
+
+  /* phone drawer */
+  var menu=$('#menuBtn');
+  function setNav(o){document.body.classList.toggle('nav-open',o);menu.setAttribute('aria-expanded',o?'true':'false');}
+  menu.addEventListener('click',function(){setNav(!document.body.classList.contains('nav-open'));});
+  $('#scrim').addEventListener('click',function(){setNav(false);});
+  navList.addEventListener('click',function(e){if(e.target.closest('a'))setNav(false);});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')setNav(false);});
+
+  /* search with highlight */
+  var q=$('#q'),qs=$('#qs'),qc=$('#qc'),timer;
+  function unmark(){
+    $$('mark.hit').forEach(function(m){var p=m.parentNode;p.replaceChild(document.createTextNode(m.textContent),m);p.normalize();});
+  }
+  function run(){
+    unmark();
+    var v=q.value.trim();
+    document.body.classList.toggle('searching',!!v);
+    if(!v){
+      secs.forEach(function(s){s.hidden=false;});
+      $$('.nav-list a').forEach(function(a){a.classList.remove('nohit');});
+      qs.textContent='';qc.hidden=true;return;
+    }
+    qc.hidden=false;
+    var re=new RegExp(v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'giu');
+    var total=0,hitSecs=0;
+    secs.forEach(function(s){
+      var walker=document.createTreeWalker(s,NodeFilter.SHOW_TEXT,{acceptNode:function(n){
+        if(!n.nodeValue.trim())return NodeFilter.FILTER_REJECT;
+        if(n.parentNode.closest('button,script,style,svg'))return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;}});
+      var nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+      var c=0;
+      nodes.forEach(function(n){
+        var t=n.nodeValue;re.lastIndex=0;
+        if(!re.test(t))return;
+        re.lastIndex=0;
+        var frag=document.createDocumentFragment(),last=0,m;
+        while((m=re.exec(t))){
+          if(m[0].length===0){re.lastIndex++;continue;}
+          if(m.index>last)frag.appendChild(document.createTextNode(t.slice(last,m.index)));
+          var mk=document.createElement('mark');mk.className='hit';mk.textContent=m[0];frag.appendChild(mk);
+          last=m.index+m[0].length;c++;
+        }
+        if(last<t.length)frag.appendChild(document.createTextNode(t.slice(last)));
+        n.parentNode.replaceChild(frag,n);
+      });
+      s.hidden=(c===0);
+      var link=$('.nav-list a[data-for="'+s.id+'"]');if(link)link.classList.toggle('nohit',c===0);
+      if(c){hitSecs++;total+=c;$$('details',s).forEach(function(d){if(d.querySelector('mark.hit'))d.open=true;});}
+    });
+    qs.textContent=total?(total+' сәйкестік · '+hitSecs+' бөлім'):'Ештеңе табылмады';
+  }
+  q.addEventListener('input',function(){clearTimeout(timer);timer=setTimeout(run,140);});
+  qc.addEventListener('click',function(){q.value='';run();q.focus();});
+})();
+</script>
